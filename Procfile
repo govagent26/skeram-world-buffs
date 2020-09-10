@@ -1,1 +1,1 @@
-worker: py skeram_world_buffs.py
+worker: python skeram_world_buffs.py
