@@ -66,6 +66,7 @@ async def help(ctx):
 
 @bot.command(name="playback", description="Updates if bot should print out when changes occur [on|off]")
 async def help(ctx, status):
+    global playback_updates
     if status.lower() == 'on':
         playback_updates = True
     else:
