@@ -21,7 +21,7 @@ Creates and updates the world buffs message and posts to the world-buff-time cha
 !swb-ony-drop &lt;name&gt; &lt;time&gt;  
 !swb-nef-drop &lt;name&gt; &lt;time&gt;  
 !swb-hakkar-drop &lt;name&gt; &lt;time&gt;  
-  ##Adds the &lt;name&gt; of a buff dropper and the planned <time>
+  ##Adds the &lt;name&gt; of a buff dropper and the planned &lt;time&gt;
 
 
 !swb-rend-drop-remove &lt;name&gt;  
