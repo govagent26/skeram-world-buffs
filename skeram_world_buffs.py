@@ -424,29 +424,34 @@ async def get_extra_message():
 
 async def calc_rend_msg():
     message = ':japanese_ogre:  Rend --- ' + rend_time
-    message = message + await droppers_msg(rend_drops, rend_time)
+    message += await droppers_msg(rend_drops, rend_time)
     return message
 
 async def calc_ony_msg():
     message = ':dragon:  Ony --- ' + ony_time
-    message = message + await droppers_msg(ony_drops, ony_time)
+    message += await droppers_msg(ony_drops, ony_time)
     return message
 
 async def calc_nef_msg():
     message = ':dragon_face:  Nef --- ' + nef_time
-    message = message + await droppers_msg(nef_drops, nef_time)
+    message += await droppers_msg(nef_drops, nef_time)
     return message
 
 async def calc_hakkar_msg():
-    message = ':heartpulse:  Hakkar  --- '
+    message = ':heartpulse:  Hakkar --- '
     if len(hakkar_drops) > 0:
-        message = message + await droppers_msg(hakkar_drops, '')
+        droppers = ''
+        for drop in hakkar_drops:
+            if len(droppers) > 0:
+                droppers += ',  '
+            droppers += drop.time + ' (**' + drop.name + '**)'
+        message += droppers
     else:
-        message = message + '?:??'
+        message += '?:??'
     if len(hakkar_yi_summons) > 0:
-        message = message + '  --  ' + await summoners_buffers_msg(hakkar_yi_summons, 'YI summons')
+        message += '  --  ' + await summoners_buffers_msg(hakkar_yi_summons, 'YI summons')
     if len(hakkar_bb_summons) > 0:
-        message = message + '  --  ' + await summoners_buffers_msg(hakkar_bb_summons, 'BB summons')
+        message += '  --  ' + await summoners_buffers_msg(hakkar_bb_summons, 'BB summons')
     return message
 
 async def calc_bvsf_msg():
@@ -457,14 +462,14 @@ async def calc_bvsf_msg():
     else:
         message = ':wilted_rose:  BVSF --- ' + bvsf_time
     if len(bvsf_summons) > 0:
-        message = message + '  --  ' + await summoners_buffers_msg(bvsf_summons)
+        message += '  --  ' + await summoners_buffers_msg(bvsf_summons)
     return message
 
 async def calc_dmt_msg():
     message = await summoners_buffers_msg(dmt_buffs, 'DM buffs')
     if len(dmt_summons) > 0:
         if len(message) > 0:
-            message = message + '  --  ' + await summoners_buffers_msg(dmt_summons)
+            message += '  --  ' + await summoners_buffers_msg(dmt_summons)
         else:
             message = await summoners_buffers_msg(dmt_summons)
     if len(message) == 0:
@@ -493,10 +498,10 @@ async def calc_dmf_msg():
     else:
         message = ':circus_tent:  DMF --- '
     if len(dmf_summons) > 0:
-        message = message + await summoners_buffers_msg(dmf_summons)
+        message += await summoners_buffers_msg(dmf_summons)
     else:
-        message = message + ' No summons available at this time'
-    message = message + '\n'
+        message += ' No summons available at this time'
+    message += '\n'
     return message
 
 async def check_for_bvsf_updates():
@@ -507,7 +512,7 @@ async def check_for_bvsf_updates():
     bvsf_date_time = datetime.strptime(bvsf_time, '%I:%M%p')
     new_time = local_time.replace(hour=bvsf_date_time.hour, minute=bvsf_date_time.minute)
     while local_time > new_time:
-        new_time = new_time + timedelta(minutes=25)
+        new_time += timedelta(minutes=25)
     bvsf_time = datetime.strftime(new_time, '%-I:%M%p').lower()
 
 async def get_local_time():
@@ -520,23 +525,23 @@ async def droppers_msg(droppers, next_drop_time):
     message = ''
     for drop in droppers:
         if drop.time == next_drop_time:
-            message = message + ' (**' + drop.name + '**)'
+            message += ' (**' + drop.name + '**)'
         else:
-            message = message + ' (' + drop.time + ' - **' + drop.name + '**)'
+            message += ' (' + drop.time + ' - **' + drop.name + '**)'
     return message
 
 async def summoners_buffers_msg(summoners, message_ending = 'summons'):
     message = ''
     if len(summoners) > 0:
-        message = message + 'Whisper '
+        message += 'Whisper '
         for index in range(len(summoners)):
             summoner = summoners[index]
             if index > 0:
-                message = message + '  |  '
-            message = message + ' **' + summoner.name + '** '
+                message += '  |  '
+            message += ' **' + summoner.name + '** '
             if len(summoner.msg) > 0:
-                message = message + '(' + summoner.msg + ') '
-        message = message + ' \'inv\' for {0}'.format(message_ending)
+                message += '(' + summoner.msg + ') '
+        message += ' \'inv\' for {0}'.format(message_ending)
     return message
 
 async def add_dropper(droppers, name, time):
@@ -575,7 +580,7 @@ async def construct_args_message(args):
     for index in range(len(args)):
         if index > 0:
             message = message + ' '
-        message = message + args[index]
+        message += args[index]
     return message
 
 async def calculate_next_flower(time_str):
