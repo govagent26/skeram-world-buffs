@@ -6,54 +6,54 @@ Creates and updates the world buffs message and posts to the world-buff-time cha
 !swb-help 
 
 
-!swb-rend <time>  
-!swb-ony <time>  
-!swb-nef <time>  
-  ##Specifies the <time> when the buff is open/off CD
+!swb-rend &lt;time&gt;  
+!swb-ony &lt;time&gt;  
+!swb-nef &lt;time&gt;  
+  ##Specifies the &lt;time&gt; when the buff is open/off CD
 
 
-!swb-bvsf <time>  
+!swb-bvsf &lt;time&gt;  
 !swb-bvsf-clear  
-  ##Sets the next <time> the BVSF flower should be up or clears it
+  ##Sets the next &lt;time&gt; the BVSF flower should be up or clears it
 
 
-!swb-rend-drop <name> <time>  
-!swb-ony-drop <name> <time>  
-!swb-nef-drop <name> <time>  
-!swb-hakkar-drop <name> <time>  
-  ##Adds the <name> of a buff dropper and the planned <time>
+!swb-rend-drop &lt;name&gt; &lt;time&gt;  
+!swb-ony-drop &lt;name&gt; &lt;time&gt;  
+!swb-nef-drop &lt;name&gt; &lt;time&gt;  
+!swb-hakkar-drop &lt;name&gt; &lt;time&gt;  
+  ##Adds the &lt;name&gt; of a buff dropper and the planned <time>
 
 
-!swb-rend-drop-remove <name>  
-!swb-ony-drop-remove <name>  
-!swb-nef-drop-remove <name>  
-!swb-hakkar-drop-remove <name>  
-  ##Removes the <name> of a buff dropper
+!swb-rend-drop-remove &lt;name&gt;  
+!swb-ony-drop-remove &lt;name&gt;  
+!swb-nef-drop-remove &lt;name&gt;  
+!swb-hakkar-drop-remove &lt;name&gt;  
+  ##Removes the &lt;name&gt; of a buff dropper
 
 
-!swb-yi-sums-add <name> [note...]  
-!swb-bb-sums-add <name> [note...]  
-!swb-bvsf-sums-add <name> [note...]  
-!swb-dmt-sums-add <name> [note...]  
-!swb-dmf-sums-add <name> [note...]  
-!swb-aq-sums-add <name> [note...]  
-!swb-brm-sums-add <name> [note...]  
-  ##Adds the <name> of a summoner and the [note] which may contain cost or other info
+!swb-yi-sums-add &lt;name&gt; [note...]  
+!swb-bb-sums-add &lt;name&gt; [note...]  
+!swb-bvsf-sums-add &lt;name&gt; [note...]  
+!swb-dmt-sums-add &lt;name&gt; [note...]  
+!swb-dmf-sums-add &lt;name&gt; [note...]  
+!swb-aq-sums-add &lt;name&gt; [note...]  
+!swb-brm-sums-add &lt;name&gt; [note...]  
+  ##Adds the &lt;name&gt; of a summoner and the [note] which may contain cost or other info
 
 
-!swb-yi-sums-remove <name>  
-!swb-bb-sums-remove <name>  
-!swb-bvsf-sums-remove <name>  
-!swb-dmt-sums-remove <name>  
-!swb-dmf-sums-remove <name>  
-!swb-aq-sums-remove <name>  
-!swb-brm-sums-remove <name>  
-  ##Removes the <name> of a summoner
+!swb-yi-sums-remove &lt;name&gt;  
+!swb-bb-sums-remove &lt;name&gt;  
+!swb-bvsf-sums-remove &lt;name&gt;  
+!swb-dmt-sums-remove &lt;name&gt;  
+!swb-dmf-sums-remove &lt;name&gt;  
+!swb-aq-sums-remove &lt;name&gt;  
+!swb-brm-sums-remove &lt;name&gt;  
+  ##Removes the &lt;name&gt; of a summoner
 
 
-!swb-dmt-buffs-add <name> [note...]  
-!swb-dmt-buffs-remove <name>  
-  ##Adds the <name> of a DMT buff seller and the [note] which may contain cost or other info or Removes the <name> of the DMT buffer
+!swb-dmt-buffs-add &lt;name&gt; [note...]  
+!swb-dmt-buffs-remove &lt;name&gt;  
+  ##Adds the &lt;name&gt; of a DMT buff seller and the [note] which may contain cost or other info or Removes the <name> of the DMT buffer
 
 
 !swb-dmf-loc [location...]  
