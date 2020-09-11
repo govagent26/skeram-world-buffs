@@ -179,28 +179,28 @@ class BuffDropRemoveCommands(commands.Cog, name='Removes the <name> of a buff dr
     @commands.has_role('World Buff Coordinator')
     async def remove_rend_dropper(self, ctx, name):
         global rend_drops
-        if await remove_summoner_buffer_dropper(rend_drops, name):
+        if await remove_summoner_buffer_dropper(ctx, rend_drops, name):
             await playback_message(ctx, 'Rend buff timer updated to:\n' + await calc_rend_msg())
 
     @commands.command(name='ony-drop-remove', brief='Remove user dropping ony', help='Removes a ony confirmed dropper - example: !ony-drop-remove Thatguy')
     @commands.has_role('World Buff Coordinator')
     async def remove_ony_dropper(self, ctx, name):
         global ony_drops
-        if await remove_summoner_buffer_dropper(ony_drops, name):
+        if await remove_summoner_buffer_dropper(ctx, ony_drops, name):
             await playback_message(ctx, 'Ony buff timer updated to:\n' + await calc_ony_msg())
 
     @commands.command(name='nef-drop-remove', brief='Remove user dropping nef', help='Removes a nef confirmed dropper - example: !nef-drop-remove Thatguy')
     @commands.has_role('World Buff Coordinator')
     async def remove_nef_dropper(self, ctx, name):
         global nef_drops
-        if await remove_summoner_buffer_dropper(nef_drops, name):
+        if await remove_summoner_buffer_dropper(ctx, nef_drops, name):
             await playback_message(ctx, 'Nef buff timer updated to:\n' + await calc_nef_msg())
 
     @commands.command(name='hakkar-drop-remove', brief='Remove user dropping hakkar', help='Removes a hakkar confirmed dropper - example: !hakkar-drop-remove Thatguy')
     @commands.has_role('World Buff Coordinator')
     async def remove_hakkar_dropper(self, ctx, name):
         global hakkar_drops
-        if await remove_summoner_buffer_dropper(hakkar_drops, name):
+        if await remove_summoner_buffer_dropper(ctx, hakkar_drops, name):
             await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
 
 
@@ -282,7 +282,7 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
     async def remove_dmt_summoner(self, ctx, name):
         global dmt_summons
         if await remove_summoner_buffer_dropper(ctx, dmt_summons, name):
-            await playback_message('DMT buff timer updated to:\n' + await calc_dmt_msg())
+            await playback_message(ctx, 'DMT buff timer updated to:\n' + await calc_dmt_msg())
 
     @commands.command(name='dmf-sums-remove', brief='Remove user that was summoning to DMF', help='Removes a DMF summoner - example: !dmf-sums-remove Thatguy')
     @commands.has_role('World Buff Coordinator')
