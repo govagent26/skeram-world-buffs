@@ -135,7 +135,6 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
         global rend_drops
         if await validate_time_format(time):
             await add_dropper(rend_drops, name, time)
-            await post_in_world_buffs_chat_channel()
             await playback_message(ctx, 'Rend buff timer updated to:\n' + await calc_rend_msg())
         else:
             await playback_invalid_time_message(ctx)
@@ -146,7 +145,6 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
         global ony_drops
         if await validate_time_format(time):
             await add_dropper(ony_drops, name, time)
-            await post_in_world_buffs_chat_channel()
             await playback_message(ctx, 'Ony buff timer updated to:\n' + await calc_ony_msg())
         else:
             await playback_invalid_time_message(ctx)
@@ -157,7 +155,6 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
         global nef_drops
         if await validate_time_format(time):
             await add_dropper(nef_drops, name, time)
-            await post_in_world_buffs_chat_channel()
             await playback_message(ctx, 'Nef buff timer updated to:\n' + await calc_nef_msg())
         else:
             await playback_invalid_time_message(ctx)
@@ -168,7 +165,6 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
         global hakkar_drops
         if await validate_time_format(time):
             await add_dropper(hakkar_drops, name, time)
-            await post_in_world_buffs_chat_channel()
             await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
         else:
             await playback_invalid_time_message(ctx)
@@ -548,10 +544,12 @@ async def add_dropper(droppers, name, time):
     for drop in droppers:
         if drop.name == name.title():
             drop.time = time
+            await post_in_world_buffs_chat_channel()
             return
 
     dropper = Dropper(time, name.title())
     droppers.append(dropper)
+    await post_in_world_buffs_chat_channel()
 
 async def add_summoner_buffer(summoners_buffers, name, note):
     message = await construct_args_message(note)
