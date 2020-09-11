@@ -117,7 +117,7 @@ class BVSFBuffCommands(commands.Cog, name = 'Sets the next <time> the BVSF flowe
             await post_in_world_buffs_chat_channel()
             await playback_message(ctx, 'BVSF buff timer updated to:\n' + await calc_bvsf_msg())
         else:
-            await ctx.send('Invalid time provided, format must be (H)H:MM[am|pm] - example: !bvsf 2:54pm')
+            await ctx.send('Invalid time provided, format must be (H)H:MM[am|pm] - example: {0.prefix}{0.command.name} 2:54pm'.format(ctx))
 
     @commands.command(name='bvsf-clear', brief='Clears BVSF time, sets to ?:??', help='Sets the BVSF time to ?:?? - example: !bvsf-clear')
     @commands.has_role('World Buff Coordinator')
@@ -205,7 +205,7 @@ class BuffDropRemoveCommands(commands.Cog, name='Removes the <name> of a buff dr
 
 
 class SummonerAddCommands(commands.Cog, name='Adds the <name> of a summoner and the [note] which may contain cost or other info'):
-    @commands.command(name='yi-sums-add', brief='Add user that is summoning to YI', help='Adds a YI summoner with cost/message - example: !yi-sums-add Thatguy 5g w/port')
+    @commands.command(name='yi-sums-add', aliases=['yi-sums'], brief='Add user that is summoning to YI', help='Adds a YI summoner with cost/message - example: !yi-sums-add Thatguy 5g w/port')
     @commands.has_role('World Buff Coordinator')
     async def add_hakkar_yi_summons(self, ctx, name, *note):
         global hakkar_yi_summons
