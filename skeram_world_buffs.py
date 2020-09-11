@@ -64,6 +64,14 @@ async def help(ctx):
     helptext += "```"
     await ctx.send(helptext)
 
+@bot.command(name="playback", description="Updates if bot should print out when changes occur [on|off]")
+async def help(ctx, status):
+    if status.lower() == 'on':
+        playback_updates = True
+    else:
+        playback_updates = False
+    await ctx.send('Playback is ' + ('enabled' if status == 'on' else 'disabled'))
+
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandNotFound) or isinstance(error, commands.errors.MissingRequiredArgument):
@@ -79,8 +87,7 @@ class BuffAvailTimeCommands(commands.Cog, name='Specifies the <time> when the bu
         global rend_time
         rend_time = time
         await post_in_world_buffs_chat_channel()
-        if playback_updates:
-            await ctx.send('Rend buff timer updated to:\n' + await calc_rend_msg())
+        await playback_message(ctx, 'Rend buff timer updated to:\n' + await calc_rend_msg())
 
     @commands.command(name='ony', brief='Set time for when ony is open/off CD', help='Sets the next available time ony buff is open - example: !ony 2:54pm')
     @commands.has_role('World Buff Coordinator')
@@ -88,8 +95,7 @@ class BuffAvailTimeCommands(commands.Cog, name='Specifies the <time> when the bu
         global ony_time
         ony_time = time
         await post_in_world_buffs_chat_channel()
-        if playback_updates:
-            await ctx.send('Ony buff timer updated to:\n' + await calc_ony_msg())
+        await playback_message(ctx, 'Ony buff timer updated to:\n' + await calc_ony_msg())
 
     @commands.command(name='nef', brief='Set time for when nef is open/off CD', help='Sets the next available time nef buff is open - example: !nef 2:54pm')
     @commands.has_role('World Buff Coordinator')
@@ -97,8 +103,7 @@ class BuffAvailTimeCommands(commands.Cog, name='Specifies the <time> when the bu
         global nef_time
         nef_time = time
         await post_in_world_buffs_chat_channel()
-        if playback_updates:
-            await ctx.send('Nef buff timer updated to:\n' + await calc_nef_msg())
+        await playback_message(ctx, 'Nef buff timer updated to:\n' + await calc_nef_msg())
 
 
 class BVSFBuffCommands(commands.Cog, name = 'Sets the next <time> the BVSF flower should be up or clears it'):
@@ -109,11 +114,9 @@ class BVSFBuffCommands(commands.Cog, name = 'Sets the next <time> the BVSF flowe
         if await validate_time_format(time):
             bvsf_time = time
             await post_in_world_buffs_chat_channel()
-            if playback_updates:
-                await ctx.send('BVSF buff timer updated to:\n' + await calc_bvsf_msg())
+            await playback_message(ctx, 'BVSF buff timer updated to:\n' + await calc_bvsf_msg())
         else:
-            if playback_updates:
-                await ctx.send('Invalid time provided, format must be (H)H:MM[am|pm] - example: !bvsf 2:54pm')
+            await ctx.send('Invalid time provided, format must be (H)H:MM[am|pm] - example: !bvsf 2:54pm')
 
     @commands.command(name='bvsf-clear', brief='Clears BVSF time, sets to ?:??', help='Sets the BVSF time to ?:?? - example: !bvsf-clear')
     @commands.has_role('World Buff Coordinator')
@@ -121,8 +124,7 @@ class BVSFBuffCommands(commands.Cog, name = 'Sets the next <time> the BVSF flowe
         global bvsf_time
         bvsf_time = '?:??'
         await post_in_world_buffs_chat_channel()
-        if playback_updates:
-            await ctx.send('BVSF buff timer updated to:\n' + await calc_bvsf_msg())
+        await playback_message(ctx, 'BVSF buff timer updated to:\n' + await calc_bvsf_msg())
 
 
 class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper and the planned <time>'):
@@ -133,11 +135,9 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
         if await validate_time_format(time):
             await add_dropper(rend_drops, name, time)
             await post_in_world_buffs_chat_channel()
-            if playback_updates:
-                await ctx.send('Rend buff timer updated to:\n' + await calc_rend_msg())
+            await playback_message(ctx, 'Rend buff timer updated to:\n' + await calc_rend_msg())
         else:
-            if playback_updates:
-                await ctx.send('Invalid time provided, format must be (H)H:MM[am|pm] - example: !rend-drop Thatguy 2:54pm')
+            await ctx.send('Invalid time provided, format must be (H)H:MM[am|pm] - example: !rend-drop Thatguy 2:54pm')
 
     @commands.command(name='ony-drop', brief='Add user that will drop ony along with drop time', help='Sets a ony confirmed dropper - example: !ony-drop Thatguy 2:54pm')
     @commands.has_role('World Buff Coordinator')
@@ -146,11 +146,9 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
         if await validate_time_format(time):
             await add_dropper(ony_drops, name, time)
             await post_in_world_buffs_chat_channel()
-            if playback_updates:
-                await ctx.send('Ony buff timer updated to:\n' + await calc_ony_msg())
+            await playback_message(ctx, 'Ony buff timer updated to:\n' + await calc_ony_msg())
         else:
-            if playback_updates:
-                await ctx.send('Invalid time provided, format must be (H)H:MM[am|pm] - example: !ony-drop Thatguy 2:54pm')
+            await ctx.send('Invalid time provided, format must be (H)H:MM[am|pm] - example: !ony-drop Thatguy 2:54pm')
 
     @commands.command(name='nef-drop', brief='Add user that will drop nef along with drop time', help='Sets a nef confirmed dropper - example: !nef-drop Thatguy 2:54pm')
     @commands.has_role('World Buff Coordinator')
@@ -159,11 +157,9 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
         if await validate_time_format(time):
             await add_dropper(nef_drops, name, time)
             await post_in_world_buffs_chat_channel()
-            if playback_updates:
-                await ctx.send('Nef buff timer updated to:\n' + await calc_nef_msg())
+            await playback_message(ctx, 'Nef buff timer updated to:\n' + await calc_nef_msg())
         else:
-            if playback_updates:
-                await ctx.send('Invalid time provided, format must be (H)H:MM[am|pm] - example: !nef-drop Thatguy 2:54pm')
+            await ctx.send('Invalid time provided, format must be (H)H:MM[am|pm] - example: !nef-drop Thatguy 2:54pm')
 
     @commands.command(name='hakkar-drop', brief='Add user that will drop hakkar along with drop time', help='Sets a hakkar confirmed dropper - example: !hakkar-drop Thatguy 2:54pm')
     @commands.has_role('World Buff Coordinator')
@@ -172,11 +168,9 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
         if await validate_time_format(time):
             await add_dropper(hakkar_drops, name, time)
             await post_in_world_buffs_chat_channel()
-            if playback_updates:
-                await ctx.send('Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
+            await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
         else:
-            if playback_updates:
-                await ctx.send('Invalid time provided, format must be (H)H:MM[am|pm] - example: !hakkar-drop Thatguy 2:54pm')
+            await ctx.send('Invalid time provided, format must be (H)H:MM[am|pm] - example: !hakkar-drop Thatguy 2:54pm')
 
 
 class BuffDropRemoveCommands(commands.Cog, name='Removes the <name> of a buff dropper'):
@@ -186,8 +180,7 @@ class BuffDropRemoveCommands(commands.Cog, name='Removes the <name> of a buff dr
         global rend_drops
         await remove_dropper(rend_drops, name)
         await post_in_world_buffs_chat_channel()
-        if playback_updates:
-            await ctx.send('Rend buff timer updated to:\n' + await calc_rend_msg())
+        await playback_message(ctx, 'Rend buff timer updated to:\n' + await calc_rend_msg())
 
     @commands.command(name='ony-drop-remove', brief='Remove user dropping ony', help='Removes a ony confirmed dropper - example: !ony-drop-remove Thatguy')
     @commands.has_role('World Buff Coordinator')
@@ -195,8 +188,7 @@ class BuffDropRemoveCommands(commands.Cog, name='Removes the <name> of a buff dr
         global ony_drops
         await remove_dropper(ony_drops, name)
         await post_in_world_buffs_chat_channel()
-        if playback_updates:
-            await ctx.send('Ony buff timer updated to:\n' + await calc_ony_msg())
+        await playback_message(ctx, 'Ony buff timer updated to:\n' + await calc_ony_msg())
 
     @commands.command(name='nef-drop-remove', brief='Remove user dropping nef', help='Removes a nef confirmed dropper - example: !nef-drop-remove Thatguy')
     @commands.has_role('World Buff Coordinator')
@@ -204,8 +196,7 @@ class BuffDropRemoveCommands(commands.Cog, name='Removes the <name> of a buff dr
         global nef_drops
         await remove_dropper(nef_drops, name)
         await post_in_world_buffs_chat_channel()
-        if playback_updates:
-            await ctx.send('Nef buff timer updated to:\n' + await calc_nef_msg())
+        await playback_message(ctx, 'Nef buff timer updated to:\n' + await calc_nef_msg())
 
     @commands.command(name='hakkar-drop-remove', brief='Remove user dropping hakkar', help='Removes a hakkar confirmed dropper - example: !hakkar-drop-remove Thatguy')
     @commands.has_role('World Buff Coordinator')
@@ -213,8 +204,7 @@ class BuffDropRemoveCommands(commands.Cog, name='Removes the <name> of a buff dr
         global hakkar_drops
         await remove_dropper(hakkar_drops, name)
         await post_in_world_buffs_chat_channel()
-        if playback_updates:
-            await ctx.send('Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
+        await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
 
 
 class SummonerAddCommands(commands.Cog, name='Adds the <name> of a summoner and the [note] which may contain cost or other info'):
@@ -225,8 +215,7 @@ class SummonerAddCommands(commands.Cog, name='Adds the <name> of a summoner and 
         message = await construct_args_message(note)
         await add_summoner_buffer(hakkar_yi_summons, name, message)
         await post_in_world_buffs_chat_channel()
-        if playback_updates:
-            await ctx.send('Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
+        await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
 
     @commands.command(name='bb-sums-add', brief='Add user that is summoning to BB', help='Adds a BB summoner with cost/message - example: !bb-sums-add Thatguy 5g w/port')
     @commands.has_role('World Buff Coordinator')
@@ -235,8 +224,7 @@ class SummonerAddCommands(commands.Cog, name='Adds the <name> of a summoner and 
         message = await construct_args_message(note)
         await add_summoner_buffer(hakkar_bb_summons, name, message)
         await post_in_world_buffs_chat_channel()
-        if playback_updates:
-            await ctx.send('Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
+        await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
 
     @commands.command(name='bvsf-sums-add', brief='Add user that is summoning to BVSF', help='Adds a BVSF summoner with cost/message - example: !swb-bvsf-sums-add Thatguy 5g w/port')
     @commands.has_role('World Buff Coordinator')
@@ -245,8 +233,7 @@ class SummonerAddCommands(commands.Cog, name='Adds the <name> of a summoner and 
         message = await construct_args_message(note)
         await add_summoner_buffer(bvsf_summons, name, message)
         await post_in_world_buffs_chat_channel()
-        if playback_updates:
-            await ctx.send('BVSF buff timer updated to:\n' + await calc_bvsf_msg())
+        await playback_message(ctx, 'BVSF buff timer updated to:\n' + await calc_bvsf_msg())
 
     @commands.command(name='dmt-sums-add', brief='Add user that is summoning to DMT', help='Adds a DMT summoner with cost/message - example: !dmt-sums-add Thatguy 5g w/port')
     @commands.has_role('World Buff Coordinator')
@@ -255,8 +242,7 @@ class SummonerAddCommands(commands.Cog, name='Adds the <name> of a summoner and 
         message = await construct_args_message(note)
         await add_summoner_buffer(dmt_summons, name, message)
         await post_in_world_buffs_chat_channel()
-        if playback_updates:
-            await ctx.send('DMT buff timer updated to:\n' + await calc_dmt_msg())
+        await playback_message(ctx, 'DMT buff timer updated to:\n' + await calc_dmt_msg())
 
     @commands.command(name='dmf-sums-add', brief='Add user that is summoning to DMF', help='Adds a DMF summoner with cost/message - example: !dmf-sums-add Thatguy 5g w/port')
     @commands.has_role('World Buff Coordinator')
@@ -265,8 +251,7 @@ class SummonerAddCommands(commands.Cog, name='Adds the <name> of a summoner and 
         message = await construct_args_message(note)
         await add_summoner_buffer(dmf_summons, name, message)
         await post_in_world_buffs_chat_channel()
-        if playback_updates:
-            await ctx.send('DMF buff timer updated to:\n' + await calc_dmf_msg())
+        await playback_message(ctx, 'DMF buff timer updated to:\n' + await calc_dmf_msg())
 
     @commands.command(name='aq-sums-add', brief='Add user that is summoning to AQ Gates', help='Adds a AQ Gates summoner with cost/message - example: !aq-sums-add Thatguy 5g w/port')
     @commands.has_role('World Buff Coordinator')
@@ -275,8 +260,7 @@ class SummonerAddCommands(commands.Cog, name='Adds the <name> of a summoner and 
         message = await construct_args_message(note)
         await add_summoner_buffer(aq_summons, name, message)
         await post_in_world_buffs_chat_channel()
-        if playback_updates:
-            await ctx.send('AQ Gates buff timer updated to:\n' + await calc_aq_msg())
+        await playback_message(ctx, 'AQ Gates buff timer updated to:\n' + await calc_aq_msg())
 
     @commands.command(name='brm-sums-add', brief='Add user that is summoning to BRM', help='Adds a BRM summoner with cost/message - example: !brm-sums-add Thatguy 5g w/port')
     @commands.has_role('World Buff Coordinator')
@@ -285,8 +269,7 @@ class SummonerAddCommands(commands.Cog, name='Adds the <name> of a summoner and 
         message = await construct_args_message(note)
         await add_summoner_buffer(brm_summons, name, message)
         await post_in_world_buffs_chat_channel()
-        if playback_updates:
-            await ctx.send('BRM buff timer updated to:\n' + await calc_brm_msg())
+        await playback_message(ctx, 'BRM buff timer updated to:\n' + await calc_brm_msg())
 
 
 class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summoner'):
@@ -294,67 +277,59 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
     @commands.has_role('World Buff Coordinator')
     async def remove_hakkar_yi_summons(self, ctx, name):
         global hakkar_yi_summons
-        await remove_summoner_buffer(hakkar_yi_summons, name)
-        await post_in_world_buffs_chat_channel()
-        if playback_updates:
-            await ctx.send('Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
+        if await remove_summoner_buffer(ctx, hakkar_yi_summons, name):
+            await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
 
     @commands.command(name='bb-sums-remove', brief='Remove user that was summoning to BB', help='Removes a BB summoner - example: !bb-sums-remove Thatguy')
     @commands.has_role('World Buff Coordinator')
     async def remove_hakkar_bb_summons(self, ctx, name):
         global hakkar_bb_summons
-        await remove_summoner_buffer(hakkar_bb_summons, name)
-        await post_in_world_buffs_chat_channel()
-        if playback_updates:
-            await ctx.send('Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
+        if await remove_summoner_buffer(ctx, hakkar_bb_summons, name):
+            await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
 
     @commands.command(name='bvsf-sums-remove', brief='Remove user that was summoning to BVSF', help='Removes a BVSF summoner - example: !swb-bvsf-sums-remove Thatguy 5g w/port')
     @commands.has_role('World Buff Coordinator')
     async def remove_bvsf_summons(self, ctx, name):
         global bvsf_summons
-        await remove_summoner_buffer(bvsf_summons, name)
-        await post_in_world_buffs_chat_channel()
-        if playback_updates:
-            await ctx.send('BVSF buff timer updated to:\n' + await calc_bvsf_msg())
+        if await remove_summoner_buffer(ctx, bvsf_summons, name):
+            await playback_message(ctx, 'BVSF buff timer updated to:\n' + await calc_bvsf_msg())
 
     @commands.command(name='dmt-sums-remove', brief='Remove user that was summoning to DMT', help='Removes a DMT summoner - example: !dmt-sums-remove Thatguy')
     @commands.has_role('World Buff Coordinator')
     async def remove_dmt_summoner(self, ctx, name):
         global dmt_summons
-        await remove_summoner_buffer(dmt_summons, name)
-        await post_in_world_buffs_chat_channel()
-        if playback_updates:
-            await ctx.send('DMT buff timer updated to:\n' + await calc_dmt_msg())
+        if await remove_summoner_buffer(ctx, dmt_summons, name):
+            await playback_message('DMT buff timer updated to:\n' + await calc_dmt_msg())
 
     @commands.command(name='dmf-sums-remove', brief='Remove user that was summoning to DMF', help='Removes a DMF summoner - example: !dmf-sums-remove Thatguy')
     @commands.has_role('World Buff Coordinator')
     async def remove_dmf_summoner(self, ctx, name):
         global dmf_summons
-        await remove_summoner_buffer(dmf_summons, name)
-        await post_in_world_buffs_chat_channel()
-        if playback_updates:
+        if await remove_summoner_buffer(ctx, dmf_summons, name):
             if len(dmf_location) > 0 or len(dmf_summons) > 0:
-                await ctx.send('DMF buff timer updated to:\n' + await calc_dmf_msg())
+                await playback_message(ctx, 'DMF buff timer updated to:\n' + await calc_dmf_msg())
             else:
-                await ctx.send('DMF buff timer removed')
+                await playback_message(ctx, 'DMF buff timer removed')
 
     @commands.command(name='aq-sums-remove', brief='Remove user that was summoning to AQ Gates', help='Removes a AQ Gates summoner - example: !aq-sums-remove Thatguy')
     @commands.has_role('World Buff Coordinator')
     async def remove_aq_summons(self, ctx, name):
         global aq_summons
-        await remove_summoner_buffer(aq_summons, name)
-        await post_in_world_buffs_chat_channel()
-        if playback_updates:
-            await ctx.send('AQ Gates buff timer updated to:\n' + await calc_aq_msg())
+        if await remove_summoner_buffer(ctx, aq_summons, name):
+            if len(dmf_location) > 0 or len(dmf_summons) > 0:
+                await playback_message(ctx, 'AQ Gates buff timer updated to:\n' + await calc_aq_msg())
+            else:
+                await playback_message(ctx, 'AQ Gates buff timer removed')
 
     @commands.command(name='brm-sums-remove', brief='Remove user that was summoning to BRM', help='Removes a BRM summoner - example: !brm-sums-remove Thatguy')
     @commands.has_role('World Buff Coordinator')
     async def remove_brm_summons(self, ctx, name):
         global brm_summons
-        await remove_summoner_buffer(brm_summons, name)
-        await post_in_world_buffs_chat_channel()
-        if playback_updates:
-            await ctx.send('BRM buff timer updated to:\n' + await calc_brm_msg())
+        if await remove_summoner_buffer(ctx, brm_summons, name):
+            if len(dmf_location) > 0 or len(dmf_summons) > 0:
+                await playback_message(ctx, 'BRM buff timer updated to:\n' + await calc_brm_msg())
+            else:
+                await playback_message(ctx, 'BRM buff timer removed')
 
 
 class DMTBuffCommands(commands.Cog, name = 'Adds the <name> of a DMT buff seller and the [note] which may contain cost or other info or Removes the <name> of the DMT buffer'):
@@ -365,17 +340,14 @@ class DMTBuffCommands(commands.Cog, name = 'Adds the <name> of a DMT buff seller
         message = await construct_args_message(note)
         await add_summoner_buffer(dmt_buffs, name, message)
         await post_in_world_buffs_chat_channel()
-        if playback_updates:
-            await ctx.send('DMT buff timer updated to:\n' + await calc_dmt_msg())
+        await playback_message(ctx, 'DMT buff timer updated to:\n' + await calc_dmt_msg())
 
     @commands.command(name='dmt-buffs-remove', brief='Remove user that was offering DMT buffs', help='Removes a DMT buffer - example: !dmt-sums-remove Thatguy')
     @commands.has_role('World Buff Coordinator')
     async def remove_dmt_buffs(self, ctx, name):
         global dmt_buffs
-        await remove_dropper(dmt_buffs, name)
-        await post_in_world_buffs_chat_channel()
-        if playback_updates:
-            await ctx.send('DMT buff timer updated to:\n' + await calc_dmt_msg())
+        if await remove_summoner_buffer(ctx, dmt_buffs, name):
+            await playback_message(ctx, 'DMT buff timer updated to:\n' + await calc_dmt_msg())
 
 
 class DMFBuffCommands(commands.Cog, name = 'Specifies the [location] of the DMF (Elwynn Forest or Mulgore) - specifying no location will hide the message when no summoners are present'):
@@ -385,11 +357,10 @@ class DMFBuffCommands(commands.Cog, name = 'Specifies the [location] of the DMF 
         global dmf_location
         dmf_location = await construct_args_message(location)
         await post_in_world_buffs_chat_channel()
-        if playback_updates:
-            if len(dmf_location) > 0 or len(dmf_summons) > 0:
-                await ctx.send('DMF buff timer updated to:\n' + await calc_dmf_msg())
-            else:
-                await ctx.send('DMF buff timer removed')
+        if len(dmf_location) > 0 or len(dmf_summons) > 0:
+            await playback_message(ctx, 'DMF buff timer updated to:\n' + await calc_dmf_msg())
+        else:
+            await playback_message(ctx, 'DMF buff timer removed')
 
 
 class ServerMaintenanceCommands(commands.Cog, name = 'Specifies the maintenance or server status [message] - specifying no message will hide the message'):
@@ -399,11 +370,10 @@ class ServerMaintenanceCommands(commands.Cog, name = 'Specifies the maintenance 
         global server_maintenance
         server_maintenance = await construct_args_message(message)
         await post_in_world_buffs_chat_channel()
-        if playback_updates:
-            if len(server_maintenance) > 0:
-                await ctx.send('Server status message updated to:\n' + await get_maintenance())
-            else:
-                await ctx.send('Server status message removed')
+        if len(server_maintenance) > 0:
+            await playback_message(ctx, 'Server status message updated to:\n' + await get_maintenance())
+        else:
+            await playback_message(ctx, 'Server status message removed')
 
 
 class GriefingCommands(commands.Cog, name = 'Specifies the ally sighting / griefing [message] - specifying no message will hide the message'):
@@ -413,11 +383,10 @@ class GriefingCommands(commands.Cog, name = 'Specifies the ally sighting / grief
         global alliance
         alliance = await construct_args_message(message)
         await post_in_world_buffs_chat_channel()
-        if playback_updates:
-            if len(alliance) > 0:
-                await ctx.send('Alliance warning message updated to:\n' + await get_alliance())
-            else:
-                await ctx.send('Alliance warning message removed')
+        if len(alliance) > 0:
+            await playback_message(ctx, 'Alliance warning message updated to:\n' + await get_alliance())
+        else:
+            await playback_message(ctx, 'Alliance warning message removed')
 
 
 class ExtraMessageCommands(commands.Cog, name = 'Specifies an additional footer [message] - specifying no message will hide the message'):
@@ -427,11 +396,10 @@ class ExtraMessageCommands(commands.Cog, name = 'Specifies an additional footer 
         global extra_message
         extra_message = await construct_args_message(message)
         await post_in_world_buffs_chat_channel()
-        if playback_updates:
-            if len(extra_message) > 0:
-                await ctx.send('Extra footer message updated to:\n' + await get_extra_message())
-            else:
-                await ctx.send('Extra footer message removed')
+        if len(extra_message) > 0:
+            await playback_message(ctx, 'Extra footer message updated to:\n' + await get_extra_message())
+        else:
+            await playback_message(ctx, 'Extra footer message removed')
 
 
 async def get_buff_times():
@@ -559,7 +527,7 @@ async def check_for_bvsf_updates():
     new_time = local_time.replace(hour=bvsf_date_time.hour, minute=bvsf_date_time.minute)
     while local_time > new_time:
         new_time = new_time + timedelta(minutes=25)
-    bvsf_time = datetime.strftime(new_time, '%#I:%M%p').lower()
+    bvsf_time = datetime.strftime(new_time, '%-I:%M%p').lower()
 
 async def get_local_time():
     utc = timezone('UTC')
@@ -614,11 +582,15 @@ async def add_summoner_buffer(summoners_buffers, name, message):
     summoner_buffer = SummonerBuffer(name.title(), message)
     summoners_buffers.append(summoner_buffer)
 
-async def remove_summoner_buffer(summoners_buffers, name):
+async def remove_summoner_buffer(ctx, summoners_buffers, name):
     for summon_buff in summoners_buffers:
         if summon_buff.name == name.title():
             summoners_buffers.remove(summon_buff)
-            return
+            await post_in_world_buffs_chat_channel()
+            return True
+
+    await ctx.send('Name **{0}** not found - nothing to remove'.format(name))
+    return False
 
 async def construct_args_message(args):
     message = ''
@@ -633,11 +605,15 @@ async def calculate_next_flower(time_str):
         return;
     time = datetime.strptime(time_str, '%I:%M%p')
     new_time = time + timedelta(minutes=25)
-    return datetime.strftime(new_time, '%#I:%M%p').lower()
+    return datetime.strftime(new_time, '%-I:%M%p').lower()
 
 async def validate_time_format(time):
     valid = re.search('^[0-2]?[0-9]:[0-5][0-9][a,p]m$', time)
     return valid
+
+async def playback_message(ctx, message):
+    if (playback_updates):
+        await ctx.send(message)
 
 async def post_in_world_buffs_chat_channel():
     channel = bot.get_channel(CHANNEL_ID)
