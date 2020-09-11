@@ -208,56 +208,49 @@ class SummonerAddCommands(commands.Cog, name='Adds the <name> of a summoner and 
     @commands.has_role('World Buff Coordinator')
     async def add_hakkar_yi_summons(self, ctx, name, *note):
         global hakkar_yi_summons
-        message = await construct_args_message(note)
-        await add_summoner_buffer(hakkar_yi_summons, name, message)
+        await add_summoner_buffer(hakkar_yi_summons, name, note)
         await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
 
     @commands.command(name='bb-sums-add', brief='Add user that is summoning to BB', help='Adds a BB summoner with cost/message - example: !bb-sums-add Thatguy 5g w/port')
     @commands.has_role('World Buff Coordinator')
     async def add_hakkar_bb_summons(self, ctx, name, *note):
         global hakkar_bb_summons
-        message = await construct_args_message(note)
-        await add_summoner_buffer(hakkar_bb_summons, name, message)
+        await add_summoner_buffer(hakkar_bb_summons, name, note)
         await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
 
     @commands.command(name='bvsf-sums-add', brief='Add user that is summoning to BVSF', help='Adds a BVSF summoner with cost/message - example: !swb-bvsf-sums-add Thatguy 5g w/port')
     @commands.has_role('World Buff Coordinator')
     async def add_bvsf_summons(self, ctx, name, *note):
         global bvsf_summons
-        message = await construct_args_message(note)
-        await add_summoner_buffer(bvsf_summons, name, message)
+        await add_summoner_buffer(bvsf_summons, name, note)
         await playback_message(ctx, 'BVSF buff timer updated to:\n' + await calc_bvsf_msg())
 
     @commands.command(name='dmt-sums-add', brief='Add user that is summoning to DMT', help='Adds a DMT summoner with cost/message - example: !dmt-sums-add Thatguy 5g w/port')
     @commands.has_role('World Buff Coordinator')
     async def add_dmt_summoner(self, ctx, name, *note):
         global dmt_summons
-        message = await construct_args_message(note)
-        await add_summoner_buffer(dmt_summons, name, message)
+        await add_summoner_buffer(dmt_summons, name, note)
         await playback_message(ctx, 'DMT buff timer updated to:\n' + await calc_dmt_msg())
 
     @commands.command(name='dmf-sums-add', brief='Add user that is summoning to DMF', help='Adds a DMF summoner with cost/message - example: !dmf-sums-add Thatguy 5g w/port')
     @commands.has_role('World Buff Coordinator')
     async def add_dmf_summoner(self, ctx, name, *note):
         global dmf_summons
-        message = await construct_args_message(note)
-        await add_summoner_buffer(dmf_summons, name, message)
+        await add_summoner_buffer(dmf_summons, name, note)
         await playback_message(ctx, 'DMF buff timer updated to:\n' + await calc_dmf_msg())
 
     @commands.command(name='aq-sums-add', brief='Add user that is summoning to AQ Gates', help='Adds a AQ Gates summoner with cost/message - example: !aq-sums-add Thatguy 5g w/port')
     @commands.has_role('World Buff Coordinator')
     async def add_aq_gates_summons(self, ctx, name, *note):
         global aq_summons
-        message = await construct_args_message(note)
-        await add_summoner_buffer(aq_summons, name, message)
+        await add_summoner_buffer(aq_summons, name, note)
         await playback_message(ctx, 'AQ Gates buff timer updated to:\n' + await calc_aq_msg())
 
     @commands.command(name='brm-sums-add', brief='Add user that is summoning to BRM', help='Adds a BRM summoner with cost/message - example: !brm-sums-add Thatguy 5g w/port')
     @commands.has_role('World Buff Coordinator')
     async def add_brm_summons(self, ctx, name, *note):
         global brm_summons
-        message = await construct_args_message(note)
-        await add_summoner_buffer(brm_summons, name, message)
+        await add_summoner_buffer(brm_summons, name, note)
         await playback_message(ctx, 'BRM buff timer updated to:\n' + await calc_brm_msg())
 
 
@@ -326,8 +319,7 @@ class DMTBuffCommands(commands.Cog, name = 'Adds the <name> of a DMT buff seller
     @commands.has_role('World Buff Coordinator')
     async def add_dmt_buffs(self, ctx, name, *note):
         global dmt_buffs
-        message = await construct_args_message(note)
-        await add_summoner_buffer(dmt_buffs, name, message)
+        await add_summoner_buffer(dmt_buffs, name, note)
         await playback_message(ctx, 'DMT buff timer updated to:\n' + await calc_dmt_msg())
 
     @commands.command(name='dmt-buffs-remove', brief='Remove user that was offering DMT buffs', help='Removes a DMT buffer - example: !dmt-sums-remove Thatguy')
@@ -555,7 +547,8 @@ async def add_dropper(droppers, name, time):
     dropper = Dropper(time, name.title())
     droppers.append(dropper)
 
-async def add_summoner_buffer(summoners_buffers, name, message):
+async def add_summoner_buffer(summoners_buffers, name, note):
+    message = await construct_args_message(note)
     for summon_buff in summoners_buffers:
         if summon_buff.name == name.title():
             summon_buff.msg = message
