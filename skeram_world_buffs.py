@@ -13,7 +13,7 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 WORLD_BUFF_CHANNEL_ID = int(os.getenv('WORLD_BUFF_CHANNEL_ID'))
 WBC_CHANNEL_ID = int(os.getenv('WBC_CHANNEL_ID'))
 
-bot = commands.Bot(command_prefix='!swb-')
+bot = commands.Bot(command_prefix='!swb-', case_insensitive=True)
 bot.remove_command('help')
 
 
@@ -43,6 +43,7 @@ bvsf_time = "?:??"
 bvsf_summons = []
 dmt_buffs = []
 dmt_summons = []
+naxx_summons = []
 aq_summons = []
 brm_summons = []
 dmf_location = ''
@@ -55,7 +56,7 @@ extra_message = ''
 @bot.command(name="help", description="Shows all available commands")
 async def help(ctx):
     helptext = "```"
-    helptext += '{0.command_prefix}{1.qualified_name} {1.signature}\n\n'.format(bot, bot.get_command('help'))
+    helptext += '{0.command_prefix}{1.qualified_name} {1.signature}\n  {1.description}\n\n'.format(bot, bot.get_command('help'))
     for cog in bot.cogs:
         commands = ''
         cog_obj = bot.get_cog(cog)
@@ -66,6 +67,7 @@ async def help(ctx):
     await ctx.send(helptext)
 
 @bot.command(name="playback", description="Updates if bot should print out when changes occur [on|off]")
+@commands.has_role('World Buff Coordinator')
 async def help(ctx, status):
     global playback_updates
     if status.lower() == 'on':
@@ -73,6 +75,111 @@ async def help(ctx, status):
     else:
         playback_updates = False
     await ctx.send('Playback is ' + ('enabled' if status == 'on' else 'disabled'))
+
+@bot.command(name="clear-all-data-confirm", description="Purges all saved data")
+@commands.has_role('World Buff Coordinator')
+async def clear_all_data(ctx):
+    world_buff_channel = bot.get_channel(WORLD_BUFF_CHANNEL_ID)
+    messages = await world_buff_channel.history(limit = 1).flatten()
+    if len(messages) > 0 and messages[0].author == bot.user:
+        message = await world_buff_channel.fetch_message(messages[0].id)
+        await ctx.send('**Data cleared...**\Previous Message:\n' + message.content)
+    global server_maintenance
+    server_maintenance = ''
+    global rend_time
+    global rend_drops
+    rend_time = '?:??'
+    rend_drops = []
+    global ony_time
+    global ony_drops
+    ony_time = '?:??'
+    ony_drops = []
+    global nef_time
+    global nef_drops
+    nef_time = '?:??'
+    nef_drops = []
+    global hakkar_drops
+    global hakkar_yi_summons
+    global hakkar_bb_summons
+    hakkar_drops = []
+    hakkar_yi_summons= []
+    hakkar_bb_summons = []
+    global bvsf_time
+    global bvsf_summons
+    bvsf_time = "?:??"
+    bvsf_summons = []
+    global dmt_buffs
+    global dmt_summons
+    dmt_buffs = []
+    dmt_summons = []
+    global naxx_summons
+    naxx_summons = []
+    global aq_summons
+    aq_summons = []
+    global brm_summons
+    brm_summons = []
+    global dmf_location
+    dmf_location = ''
+    global dmf_summons
+    dmf_summons = []
+    global alliance
+    alliance = ''
+    global extra_message
+    extra_message = ''
+    await post_in_world_buffs_chat_channel()
+    await ctx.send('All data cleared')
+
+@bot.command(name="mockup-data-confirm", description="Populates all elements of the message with dummy data")
+@commands.has_role('World Buff Coordinator')
+async def mockup_data(ctx):
+    global server_maintenance
+    server_maintenance = 'SERVER IS UP'
+    global rend_time
+    global rend_drops
+    rend_time = '3:00pm'
+    await add_dropper_no_post(rend_drops, 'Renddropper', '3:00pm')
+    await add_dropper_no_post(rend_drops, 'Nextdropper', '6:00pm')
+    global ony_time
+    global ony_drops
+    ony_time = 'OPEN'
+    await add_dropper_no_post(ony_drops, 'Onydropper', '8:00pm')
+    global nef_time
+    global nef_drops
+    nef_time = '7:45pm'
+    global hakkar_drops
+    global hakkar_yi_summons
+    global hakkar_bb_summons
+    await add_dropper_no_post(hakkar_drops, 'Hakkardrop', '7:00pm')
+    await add_dropper_no_post(hakkar_drops, 'Hakkarnotdrop', '9:15pm')
+    await add_summoner_buffer_no_post(hakkar_yi_summons, 'YIsums', ['5g'])
+    await add_summoner_buffer_no_post(hakkar_yi_summons, 'YIsummer', ['4g w/port'])
+    await add_summoner_buffer_no_post(hakkar_bb_summons, 'BBsums', [''])
+    global bvsf_time
+    global bvsf_summons
+    #bvsf_time = '4:35pm'
+    await add_summoner_buffer_no_post(bvsf_summons, 'Whosums', ['5g'])
+    global dmt_buffs
+    global dmt_summons
+    await add_summoner_buffer_no_post(dmt_buffs, 'Mybuffs', ['7g w/port and summons'])
+    await add_summoner_buffer_no_post(dmt_buffs, 'Dmtbuffs', ['5g'])
+    await add_summoner_buffer_no_post(dmt_summons, 'Datsums', ['8g'])
+    global naxx_summons
+    await add_summoner_buffer_no_post(naxx_summons, 'naxxsums', ['7g'])
+    global aq_summons
+    await add_summoner_buffer_no_post(aq_summons, 'aqSums', ['3g'])
+    global brm_summons
+    await add_summoner_buffer_no_post(brm_summons, 'brmsums', ['8g'])
+    global dmf_location
+    dmf_location = 'Mulgore'
+    global dmf_summons
+    await add_summoner_buffer_no_post(dmf_summons, 'dmfsums', ['10g'])
+    global alliance
+    alliance = 'ALLY everywhere - dont die'
+    global extra_message
+    extra_message = 'Extra message for ........'
+    await post_in_world_buffs_chat_channel()
+    await ctx.send('Data mocked up')
+
 
 @bot.event
 async def on_command_error(ctx, error):
@@ -256,6 +363,13 @@ class SummonerAddCommands(commands.Cog, name='Adds the <name> of a summoner and 
         await add_summoner_buffer(dmf_summons, name, note)
         await playback_message(ctx, 'DMF buff timer updated to:\n' + await calc_dmf_msg())
 
+    @commands.command(name='naxx-sums-add', aliases=['naxx-sums', 'nax-sums-add', 'nax-sums'], brief='Add user that is summoning to Naxx', help='Adds a Naxx summoner with cost/message - example: !naxx-sums-add Thatguy 5g w/port')
+    @commands.has_role('World Buff Coordinator')
+    async def add_naxx_summons(self, ctx, name, *note):
+        global naxx_summons
+        await add_summoner_buffer(naxx_summons, name, note)
+        await playback_message(ctx, 'Naxx buff timer updated to:\n' + await calc_naxx_msg())
+
     @commands.command(name='aq-sums-add', aliases=['aq-sums'], brief='Add user that is summoning to AQ Gates', help='Adds a AQ Gates summoner with cost/message - example: !aq-sums-add Thatguy 5g w/port')
     @commands.has_role('World Buff Coordinator')
     async def add_aq_gates_summons(self, ctx, name, *note):
@@ -310,6 +424,16 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
             else:
                 await playback_message(ctx, 'DMF buff timer removed')
 
+    @commands.command(name='naxx-sums-remove', aliases=['nax-sums-remove'], brief='Remove user that was summoning to Naxx', help='Removes a Naxx summoner - example: !naxx-sums-remove Thatguy')
+    @commands.has_role('World Buff Coordinator')
+    async def remove_naxx_summons(self, ctx, name):
+        global naxx_summons
+        if await remove_summoner_buffer_dropper(ctx, naxx_summons, name):
+            if len(naxx_summons) > 0:
+                await playback_message(ctx, 'Naxx buff timer updated to:\n' + await calc_naxx_msg())
+            else:
+                await playback_message(ctx, 'Naxx buff timer removed')
+
     @commands.command(name='aq-sums-remove', brief='Remove user that was summoning to AQ Gates', help='Removes a AQ Gates summoner - example: !aq-sums-remove Thatguy')
     @commands.has_role('World Buff Coordinator')
     async def remove_aq_summons(self, ctx, name):
@@ -352,7 +476,7 @@ class DMFBuffCommands(commands.Cog, name = 'Specifies the [location] of the DMF 
     @commands.has_role('World Buff Coordinator')
     async def set_dmf_location(self, ctx, *location):
         global dmf_location
-        dmf_location = await construct_args_message(location)
+        dmf_location = (await construct_args_message(location)).title()
         await post_in_world_buffs_chat_channel()
         if len(dmf_location) > 0 or len(dmf_summons) > 0:
             await playback_message(ctx, 'DMF buff timer updated to:\n' + await calc_dmf_msg())
@@ -399,21 +523,23 @@ class ExtraMessageCommands(commands.Cog, name = 'Specifies an additional footer 
             await playback_message(ctx, 'Extra footer message removed')
 
 
+
 async def get_buff_times():
     await check_for_bvsf_updates()
     message = await get_timestamp()
-    message = message + await get_maintenance()
-    message = message + await calc_rend_msg() + '\n'
-    message = message + await calc_ony_msg() + '\n'
-    message = message + await calc_nef_msg() + '\n'
-    message = message + await calc_hakkar_msg() + '\n'
-    message = message + await calc_bvsf_msg() + '\n'
-    message = message + await calc_dmt_msg() + '\n'
-    message = message + await calc_aq_msg()
-    message = message + await calc_brm_msg()
-    message = message + await calc_dmf_msg()
-    message = message + await get_alliance()
-    message = message + await get_extra_message()
+    message += await get_maintenance()
+    message += await calc_rend_msg() + '\n'
+    message += await calc_ony_msg() + '\n'
+    message += await calc_nef_msg() + '\n'
+    message += await calc_hakkar_msg() + '\n'
+    message += await calc_bvsf_msg() + '\n'
+    message += await calc_dmt_msg() + '\n'
+    message += await calc_naxx_msg()
+    message += await calc_aq_msg()
+    message += await calc_brm_msg()
+    message += await calc_dmf_msg()
+    message += await get_alliance()
+    message += await get_extra_message()
     return message
 
 async def get_timestamp():
@@ -491,6 +617,12 @@ async def calc_dmt_msg():
     if len(message) == 0:
         message = 'None available at this time'
     message = ':crown:  DMT --- ' + message
+    return message
+
+async def calc_naxx_msg():
+    message = ''
+    if len(naxx_summons) > 0:
+        message = ':skull:  Naxx --- ' + await summoners_buffers_msg(naxx_summons) + '\n'
     return message
 
 async def calc_aq_msg():
@@ -644,6 +776,7 @@ async def post_in_world_buffs_chat_channel():
 #:heartpulse:  Hakkar --- 4:45pm (**Test**),  5:45pm (**Tester**)  --  Whisper  **Yisums** (1g)  'inv' for YI summons  --  Whisper  **Bbsums** (2g)  'inv' for BB summons
 #:wilted_rose:  BVSF --- 5:10pm -> 5:35pm -> 6:00pm  --  Whisper  **Bvsfsums** (5g)  'inv' for summons
 #:crown:  DMT --- Whisper  **Buffer** (5g)   |   **Betterbuffer** (10g w/summon + port)  'inv' for DM buffs  --  Whisper  **Dmtsums** (3g)  'inv' for summons
+#:skull:  Naxx --- Whisper  **Naxxsum** (7g)  'inv' for summons
 #:bug:  AQ Gates --- Whisper  **Aqsum** (7g)  'inv' for summons
 #:mountain:  BRM --- Whisper  **Brmsums** (5g or 10g w/FR :fire_extinguisher:)  'inv' for summons
 #:circus_tent:  DMF (Elwynn Forest) --- Whisper  **Dmfsums** (4g w/port)  'inv' for summons
@@ -745,6 +878,15 @@ async def populate_data_from_message(message):
             if await calc_dmt_msg() != line:
                 populate_success = False
                 print('dmt')
+        elif line.startswith(':skull:  Naxx --- '):
+            #:skull:  Naxx --- Whisper  **Naxxsum** (7g)  'inv' for summons
+            global naxx_summons
+            strings = line.split(':skull:  Naxx --- ')
+            if 'for summons' in strings[1]:
+                await process_summoners_buffers(naxx_summons, strings[1])
+            if await calc_naxx_msg() != line + '\n':
+                populate_success = False
+                print('naxx')
         elif line.startswith(':bug:  AQ Gates --- '):
             #:bug:  AQ Gates --- Whisper  **Aqsum** (7g)  'inv' for summons
             global aq_summons
