@@ -704,11 +704,12 @@ async def populate_data_from_message(message):
             global hakkar_bb_summons
             strings = line.split(':heartpulse:  Hakkar --- ')
             parts = strings[1].split('  --  ')
-            drops = parts[0].split(',')
-            for drop in drops:
-                drop_parts = drop.split(' (')
-                drop_name = drop_parts[1].split('**')
-                await add_dropper_no_post(hakkar_drops, drop_name[1], drop_parts[0].strip())
+            if parts[0] != '?:??':
+                drops = parts[0].split(',')
+                for drop in drops:
+                    drop_parts = drop.split(' (')
+                    drop_name = drop_parts[1].split('**')
+                    await add_dropper_no_post(hakkar_drops, drop_name[1], drop_parts[0].strip())
             for summon_zone in parts[1:]:
                 if 'YI summons' in summon_zone:
                     await process_summoners_buffers(hakkar_yi_summons, summon_zone)
