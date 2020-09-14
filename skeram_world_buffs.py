@@ -10,7 +10,8 @@ from pytz import timezone
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
-CHANNEL_ID = int(os.getenv('WORLD_BUFF_CHANNEL_ID'))
+WORLD_BUFF_CHANNEL_ID = int(os.getenv('WORLD_BUFF_CHANNEL_ID'))
+WBC_CHANNEL_ID = int(os.getenv('WBC_CHANNEL_ID'))
 
 bot = commands.Bot(command_prefix='!swb-')
 bot.remove_command('help')
@@ -80,6 +81,25 @@ async def on_command_error(ctx, error):
         return
     raise error
 
+@bot.event
+async def on_ready():
+    world_buff_channel = bot.get_channel(WORLD_BUFF_CHANNEL_ID)
+    wbc_channel = bot.get_channel(WBC_CHANNEL_ID)
+    messages = await world_buff_channel.history(limit = 1).flatten()
+    if len(messages) > 0 and messages[0].author == bot.user:
+        message = await world_buff_channel.fetch_message(messages[0].id)
+        message_content = message.content
+        populate_success = await populate_data_from_message(message_content)
+
+        new_message = await get_buff_times()
+        if populate_success:
+            await wbc_channel.send('**Bot restarted....**\nworld-buff-times message reposted')
+        else:
+            await wbc_channel.send('**Bot restarted....**\nExisting Message:\n{0}\n\n\nNew Message:\n{1}\n\nSome discrepencies may exist in existing vs new message after restart, please verify'.format(message_content, new_message))
+        await message.edit(content = new_message)
+    else:
+        await wbc_channel.send('**Bot restarted....**\nNo exising message found, all data cleared')
+
 
 class BuffAvailTimeCommands(commands.Cog, name='Specifies the <time> when the buff is open/off CD'):
     @commands.command(name='rend', brief='Set time for when rend is open/off CD', help='Sets the next available time rend buff is open - example: !rend 2:54pm')
@@ -129,7 +149,7 @@ class BVSFBuffCommands(commands.Cog, name = 'Sets the next <time> the BVSF flowe
 
 
 class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper and the planned <time>'):
-    @commands.command(name='rend-drop', brief='Add user that will drop rend along with drop time', help='Sets a rend confirmed dropper - example: !rend-drop Thatguy 2:54pm')
+    @commands.command(name='rend-drop', aliases=['rend-drop-add'], brief='Add user that will drop rend along with drop time', help='Sets a rend confirmed dropper - example: !rend-drop Thatguy 2:54pm')
     @commands.has_role('World Buff Coordinator')
     async def set_rend_dropper(self, ctx, name, time):
         global rend_drops
@@ -139,7 +159,7 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
         else:
             await playback_invalid_time_message(ctx)
 
-    @commands.command(name='ony-drop', brief='Add user that will drop ony along with drop time', help='Sets a ony confirmed dropper - example: !ony-drop Thatguy 2:54pm')
+    @commands.command(name='ony-drop', aliases=['ony-drop-add'], brief='Add user that will drop ony along with drop time', help='Sets a ony confirmed dropper - example: !ony-drop Thatguy 2:54pm')
     @commands.has_role('World Buff Coordinator')
     async def set_ony_dropper(self, ctx, name, time):
         global ony_drops
@@ -149,7 +169,7 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
         else:
             await playback_invalid_time_message(ctx)
 
-    @commands.command(name='nef-drop', brief='Add user that will drop nef along with drop time', help='Sets a nef confirmed dropper - example: !nef-drop Thatguy 2:54pm')
+    @commands.command(name='nef-drop', aliases=['nef-drop-add'], brief='Add user that will drop nef along with drop time', help='Sets a nef confirmed dropper - example: !nef-drop Thatguy 2:54pm')
     @commands.has_role('World Buff Coordinator')
     async def set_nef_dropper(self, ctx, name, time):
         global nef_drops
@@ -159,7 +179,7 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
         else:
             await playback_invalid_time_message(ctx)
 
-    @commands.command(name='hakkar-drop', brief='Add user that will drop hakkar along with drop time', help='Sets a hakkar confirmed dropper - example: !hakkar-drop Thatguy 2:54pm')
+    @commands.command(name='hakkar-drop', aliases=['hakkar-drop-add'], brief='Add user that will drop hakkar along with drop time', help='Sets a hakkar confirmed dropper - example: !hakkar-drop Thatguy 2:54pm')
     @commands.has_role('World Buff Coordinator')
     async def set_hakkar_dropper(self, ctx, name, time):
         global hakkar_drops
@@ -208,42 +228,42 @@ class SummonerAddCommands(commands.Cog, name='Adds the <name> of a summoner and 
         await add_summoner_buffer(hakkar_yi_summons, name, note)
         await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
 
-    @commands.command(name='bb-sums-add', brief='Add user that is summoning to BB', help='Adds a BB summoner with cost/message - example: !bb-sums-add Thatguy 5g w/port')
+    @commands.command(name='bb-sums-add', aliases=['bb-sums'], brief='Add user that is summoning to BB', help='Adds a BB summoner with cost/message - example: !bb-sums-add Thatguy 5g w/port')
     @commands.has_role('World Buff Coordinator')
     async def add_hakkar_bb_summons(self, ctx, name, *note):
         global hakkar_bb_summons
         await add_summoner_buffer(hakkar_bb_summons, name, note)
         await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
 
-    @commands.command(name='bvsf-sums-add', brief='Add user that is summoning to BVSF', help='Adds a BVSF summoner with cost/message - example: !swb-bvsf-sums-add Thatguy 5g w/port')
+    @commands.command(name='bvsf-sums-add', aliases=['bvsf-sums'], brief='Add user that is summoning to BVSF', help='Adds a BVSF summoner with cost/message - example: !swb-bvsf-sums-add Thatguy 5g w/port')
     @commands.has_role('World Buff Coordinator')
     async def add_bvsf_summons(self, ctx, name, *note):
         global bvsf_summons
         await add_summoner_buffer(bvsf_summons, name, note)
         await playback_message(ctx, 'BVSF buff timer updated to:\n' + await calc_bvsf_msg())
 
-    @commands.command(name='dmt-sums-add', brief='Add user that is summoning to DMT', help='Adds a DMT summoner with cost/message - example: !dmt-sums-add Thatguy 5g w/port')
+    @commands.command(name='dmt-sums-add', aliases=['dmt-sums'], brief='Add user that is summoning to DMT', help='Adds a DMT summoner with cost/message - example: !dmt-sums-add Thatguy 5g w/port')
     @commands.has_role('World Buff Coordinator')
     async def add_dmt_summoner(self, ctx, name, *note):
         global dmt_summons
         await add_summoner_buffer(dmt_summons, name, note)
         await playback_message(ctx, 'DMT buff timer updated to:\n' + await calc_dmt_msg())
 
-    @commands.command(name='dmf-sums-add', brief='Add user that is summoning to DMF', help='Adds a DMF summoner with cost/message - example: !dmf-sums-add Thatguy 5g w/port')
+    @commands.command(name='dmf-sums-add', aliases=['dmf-sums'], brief='Add user that is summoning to DMF', help='Adds a DMF summoner with cost/message - example: !dmf-sums-add Thatguy 5g w/port')
     @commands.has_role('World Buff Coordinator')
     async def add_dmf_summoner(self, ctx, name, *note):
         global dmf_summons
         await add_summoner_buffer(dmf_summons, name, note)
         await playback_message(ctx, 'DMF buff timer updated to:\n' + await calc_dmf_msg())
 
-    @commands.command(name='aq-sums-add', brief='Add user that is summoning to AQ Gates', help='Adds a AQ Gates summoner with cost/message - example: !aq-sums-add Thatguy 5g w/port')
+    @commands.command(name='aq-sums-add', aliases=['aq-sums'], brief='Add user that is summoning to AQ Gates', help='Adds a AQ Gates summoner with cost/message - example: !aq-sums-add Thatguy 5g w/port')
     @commands.has_role('World Buff Coordinator')
     async def add_aq_gates_summons(self, ctx, name, *note):
         global aq_summons
         await add_summoner_buffer(aq_summons, name, note)
         await playback_message(ctx, 'AQ Gates buff timer updated to:\n' + await calc_aq_msg())
 
-    @commands.command(name='brm-sums-add', brief='Add user that is summoning to BRM', help='Adds a BRM summoner with cost/message - example: !brm-sums-add Thatguy 5g w/port')
+    @commands.command(name='brm-sums-add', aliases=['brm-sums'], brief='Add user that is summoning to BRM', help='Adds a BRM summoner with cost/message - example: !brm-sums-add Thatguy 5g w/port')
     @commands.has_role('World Buff Coordinator')
     async def add_brm_summons(self, ctx, name, *note):
         global brm_summons
@@ -312,7 +332,7 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
 
 
 class DMTBuffCommands(commands.Cog, name = 'Adds the <name> of a DMT buff seller and the [note] which may contain cost or other info or Removes the <name> of the DMT buffer'):
-    @commands.command(name='dmt-buffs-add', brief='Add user that is offering DMT buffs', help='Adds a DMT buffer with cost/message - example: !dmt-buffs-add Thatguy 5g w/port')
+    @commands.command(name='dmt-buffs-add', aliases=['dmt-buffs'], brief='Add user that is offering DMT buffs', help='Adds a DMT buffer with cost/message - example: !dmt-buffs-add Thatguy 5g w/port')
     @commands.has_role('World Buff Coordinator')
     async def add_dmt_buffs(self, ctx, name, *note):
         global dmt_buffs
@@ -541,27 +561,31 @@ async def summoners_buffers_msg(summoners, message_ending = 'summons'):
     return message
 
 async def add_dropper(droppers, name, time):
+    await add_dropper_no_post(droppers, name, time)
+    await post_in_world_buffs_chat_channel()
+
+async def add_dropper_no_post(droppers, name, time):
     for drop in droppers:
         if drop.name == name.title():
             drop.time = time
-            await post_in_world_buffs_chat_channel()
             return
 
     dropper = Dropper(time, name.title())
     droppers.append(dropper)
-    await post_in_world_buffs_chat_channel()
 
 async def add_summoner_buffer(summoners_buffers, name, note):
+    await add_summoner_buffer_no_post(summoners_buffers, name, note)
+    await post_in_world_buffs_chat_channel()
+
+async def add_summoner_buffer_no_post(summoners_buffers, name, note):
     message = await construct_args_message(note)
     for summon_buff in summoners_buffers:
         if summon_buff.name == name.title():
             summon_buff.msg = message
-            await post_in_world_buffs_chat_channel()
             return
 
     summoner_buffer = SummonerBuffer(name.title(), message)
     summoners_buffers.append(summoner_buffer)
-    await post_in_world_buffs_chat_channel()
 
 async def remove_summoner_buffer_dropper(ctx, summoners_buffers_droppers, name):
     for summon_buff_drop in summoners_buffers_droppers:
@@ -600,13 +624,190 @@ async def playback_message(ctx, message):
         await ctx.send(message)
 
 async def post_in_world_buffs_chat_channel():
-    channel = bot.get_channel(CHANNEL_ID)
+    channel = bot.get_channel(WORLD_BUFF_CHANNEL_ID)
     messages = await channel.history(limit = 1).flatten()
     if len(messages) > 0 and messages[0].author == bot.user:
         message = await channel.fetch_message(messages[0].id)
         await message.edit(content = await get_buff_times())
     else:
         await channel.send(await get_buff_times())
+
+
+# Sample Message to process
+#Updated as of 2020-09-11 at 07:42am ST
+
+#:tools: **SERVER IS UP** :tools:
+
+#:japanese_ogre:  Rend --- 8:00am (8:05am - **Dajokerrrend**) (9:05am - **Norend**)
+#:dragon:  Ony --- 8:05am (**Dajokerrrend**)
+#:dragon_face:  Nef --- 9:09am (9:10am - **Dajokerrnef**)
+#:heartpulse:  Hakkar --- 4:45pm (**Test**),  5:45pm (**Tester**)  --  Whisper  **Yisums** (1g)  'inv' for YI summons  --  Whisper  **Bbsums** (2g)  'inv' for BB summons
+#:wilted_rose:  BVSF --- 5:10pm -> 5:35pm -> 6:00pm  --  Whisper  **Bvsfsums** (5g)  'inv' for summons
+#:crown:  DMT --- Whisper  **Buffer** (5g)   |   **Betterbuffer** (10g w/summon + port)  'inv' for DM buffs  --  Whisper  **Dmtsums** (3g)  'inv' for summons
+#:bug:  AQ Gates --- Whisper  **Aqsum** (7g)  'inv' for summons
+#:mountain:  BRM --- Whisper  **Brmsums** (5g or 10g w/FR :fire_extinguisher:)  'inv' for summons
+#:circus_tent:  DMF (Elwynn Forest) --- Whisper  **Dmfsums** (4g w/port)  'inv' for summons
+#:warning:  ALLY ALL OVER
+
+#:airplane: :heartpulse::wilted_rose::crown::bug: :mountain: Denmule selling 8g summons to all raid & buff locations. Whisper 'inv __' with destination (i.e. DMT, BVSF, YI, AQ, BWL, MC, Org, ZG)
+async def populate_data_from_message(message):
+    populate_success = True
+    lines = message.split("\n")
+    for index in range(len(lines)):
+        line = lines[index]
+        if line.startswith(':tools:'):
+            #:tools: SERVER IS UP :tools:
+            global server_maintenance
+            strings = line.split(':tools:')
+            non_bold_strings = strings[1].split('**')
+            server_maintenance = non_bold_strings[1]
+            if await get_maintenance() != line + '\n\n':
+                populate_success = False
+                print('server_status')
+        elif line.startswith(':japanese_ogre:  Rend --- '):
+            #:japanese_ogre:  Rend --- 8:00am (8:05am - **Dajokerrrend**) (9:05am - **Norend**)
+            global rend_time
+            global rend_drops
+            strings = line.split(':japanese_ogre:  Rend --- ')
+            parts = strings[1].split('(')
+            rend_time = parts[0].strip()
+            await process_droppers(rend_drops, parts[1:], rend_time)
+            if await calc_rend_msg() != line:
+                populate_success = False
+                print('rend')
+        elif line.startswith(':dragon:  Ony --- '):
+            #:dragon:  Ony --- 8:05am (**Dajokerrrend**)
+            global ony_time
+            global ony_drops
+            strings = line.split(':dragon:  Ony --- ')
+            parts = strings[1].split('(')
+            ony_time = parts[0].strip()
+            await process_droppers(ony_drops, parts[1:], ony_time)
+            if await calc_ony_msg() != line:
+                populate_success = False
+                print('ony')
+        elif line.startswith(':dragon_face:  Nef --- '):
+            #:dragon_face:  Nef --- 9:09am (9:10am - **Dajokerrnef**)
+            global nef_time
+            global nef_drops
+            strings = line.split(':dragon_face:  Nef --- ')
+            parts = strings[1].split('(')
+            nef_time = parts[0].strip()
+            await process_droppers(nef_drops, parts[1:], nef_time)
+            if await calc_nef_msg() != line:
+                populate_success = False
+                print('nef')
+        elif line.startswith(':heartpulse:  Hakkar --- '):
+            #:heartpulse:  Hakkar --- 4:45pm (**Test**),  5:45pm (**Tester**)  --  Whisper  **Yisums** (1g)  'inv' for YI summons  --  Whisper  **Bbsums** (2g)  'inv' for BB summons
+            global hakkar_drops
+            global hakkar_yi_summons
+            global hakkar_bb_summons
+            strings = line.split(':heartpulse:  Hakkar --- ')
+            parts = strings[1].split('  --  ')
+            drops = parts[0].split(',')
+            for drop in drops:
+                drop_parts = drop.split(' (')
+                drop_name = drop_parts[1].split('**')
+                await add_dropper_no_post(hakkar_drops, drop_name[1], drop_parts[0].strip())
+            for summon_zone in parts[1:]:
+                if 'YI summons' in summon_zone:
+                    await process_summoners_buffers(hakkar_yi_summons, summon_zone)
+                elif 'BB summons' in summon_zone:
+                    await process_summoners_buffers(hakkar_bb_summons, summon_zone)
+            if await calc_hakkar_msg() != line:
+                populate_success = False
+                print('hakkar')
+        elif line.startswith(':wilted_rose:  BVSF --- '):
+            #:wilted_rose:  BVSF --- 5:10pm -> 5:35pm -> 6:00pm  --  Whisper  **Bvsfsums** (5g)  'inv' for summons
+            global bvsf_time
+            global bvsf_summons
+            strings = line.split(':wilted_rose:  BVSF --- ')
+            parts = strings[1].split('  --  ')
+            timer = parts[0].split(' ->')
+            bvsf_time = timer[0]
+            if len(parts) > 1:
+                await process_summoners_buffers(bvsf_summons, parts[1])
+            if await calc_bvsf_msg() != line:
+                populate_success = False
+                print('bvsf')
+        elif line.startswith(':crown:  DMT --- '):
+            #:crown:  DMT --- Whisper  **Buffer** (5g)   |   **Betterbuffer** (10g w/summon + port)  'inv' for DM buffs  --  Whisper  **Dmtsums** (3g)  'inv' for summons
+            global dmt_buffs
+            global dmt_summons
+            strings = line.split(':crown:  DMT --- ')
+            parts = strings[1].split('  --  ')
+            for type in parts:
+                if 'DM buffs' in type:
+                    await process_summoners_buffers(dmt_buffs, type)
+                elif 'for summons' in type:
+                    await process_summoners_buffers(dmt_summons, type)
+            if await calc_dmt_msg() != line:
+                populate_success = False
+                print('dmt')
+        elif line.startswith(':bug:  AQ Gates --- '):
+            #:bug:  AQ Gates --- Whisper  **Aqsum** (7g)  'inv' for summons
+            global aq_summons
+            strings = line.split(':bug:  AQ Gates --- ')
+            if 'for summons' in strings[1]:
+                await process_summoners_buffers(aq_summons, strings[1])
+            if await calc_aq_msg() != line + '\n':
+                populate_success = False
+                print('aq')
+        elif line.startswith(':mountain:  BRM --- '):
+            #:mountain:  BRM --- Whisper  **Brmsums** (5g or 10g w/FR :fire_extinguisher:)  'inv' for summons
+            global brm_summons
+            strings = line.split(':mountain:  BRM --- ')
+            if 'for summons' in strings[1]:
+                await process_summoners_buffers(brm_summons, strings[1])
+            if await calc_brm_msg() != line + '\n':
+                populate_success = False
+                print('brm')
+        elif line.startswith(':circus_tent:  DMF '):
+            #:circus_tent:  DMF (Elwynn Forest) --- Whisper  **Dmfsums** (4g w/port)  'inv' for summons
+            global dmf_location
+            global dmf_summons
+            strings = line.split(' --- ')
+            if '(' in strings[0]:
+                dmf_location = strings[0].split('(')[1].split(')')[0]
+            if 'for summons' in strings[1]:
+                await process_summoners_buffers(dmf_summons, strings[1])
+            if await calc_dmf_msg() != line + '\n':
+                populate_success = False
+                print('dmf')
+        elif line.startswith(':warning:'):
+            #:warning:  ALLY ALL OVER
+            global alliance
+            strings = line.split(':warning:')
+            alliance = strings[1].strip()
+            if await get_alliance() != line + '\n':
+                populate_success = False
+                print('ally')
+        elif index == len(lines) - 1:
+            #:airplane: :heartpulse::wilted_rose::crown::bug: :mountain: Denmule selling 8g summons to all raid & buff locations. Whisper 'inv __' with destination (i.e. DMT, BVSF, YI, AQ, BWL, MC, Org, ZG)
+            global extra_message
+            if line != '':
+                extra_message = line
+                if await get_extra_message() != '\n' + line + '\n':
+                    populate_success = False
+                    print('extra_message')
+    return populate_success
+
+async def process_droppers(droppers, droppers_raw, drop_time):
+    for drop in droppers_raw:
+        if ' - ' in drop:
+            drop_split = drop.split(' - ')
+            await add_dropper_no_post(droppers, drop_split[1].split('**')[1], drop_split[0])
+        else:
+            await add_dropper_no_post(droppers, drop.split('**')[1], drop_time)
+
+async def process_summoners_buffers(summoners_buffers, message):
+    summoners_buffers_raw = message.split(' | ')
+    for summoner_buffer in summoners_buffers_raw:
+        parts = summoner_buffer.split('**')
+        summoner_note = ''
+        if '(' in parts[2]:
+            summoner_note = parts[2].split('(')[1].split(')')[0]
+        await add_summoner_buffer_no_post(summoners_buffers, parts[1], [summoner_note])
 
 
 bot.add_cog(BuffAvailTimeCommands(bot))
