@@ -282,41 +282,41 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_rend_dropper(self, ctx, name, time):
         global rend_drops
-        if await validate_time_format(time):
-            await add_dropper(rend_drops, name, time)
-            await playback_message(ctx, 'Rend buff timer updated to:\n' + await calc_rend_msg())
-        else:
-            await playback_invalid_time_message(ctx)
+        #if await validate_time_format(time):
+        await add_dropper(rend_drops, name, time)
+        await playback_message(ctx, 'Rend buff timer updated to:\n' + await calc_rend_msg())
+        #else:
+        #    await playback_invalid_time_message(ctx)
 
     @commands.command(name='ony-drop', aliases=['ony-drop-add'], brief='Add user that will drop ony along with drop time', help='Sets a ony confirmed dropper - example: --ony-drop Thatguy 2:54pm')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_ony_dropper(self, ctx, name, time):
         global ony_drops
-        if await validate_time_format(time):
-            await add_dropper(ony_drops, name, time)
-            await playback_message(ctx, 'Ony buff timer updated to:\n' + await calc_ony_msg())
-        else:
-            await playback_invalid_time_message(ctx)
+        #if await validate_time_format(time):
+        await add_dropper(ony_drops, name, time)
+        await playback_message(ctx, 'Ony buff timer updated to:\n' + await calc_ony_msg())
+        #else:
+        #    await playback_invalid_time_message(ctx)
 
     @commands.command(name='nef-drop', aliases=['nef-drop-add'], brief='Add user that will drop nef along with drop time', help='Sets a nef confirmed dropper - example: --nef-drop Thatguy 2:54pm')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_nef_dropper(self, ctx, name, time):
         global nef_drops
-        if await validate_time_format(time):
-            await add_dropper(nef_drops, name, time)
-            await playback_message(ctx, 'Nef buff timer updated to:\n' + await calc_nef_msg())
-        else:
-            await playback_invalid_time_message(ctx)
+        #if await validate_time_format(time):
+        await add_dropper(nef_drops, name, time)
+        await playback_message(ctx, 'Nef buff timer updated to:\n' + await calc_nef_msg())
+        #else:
+        #    await playback_invalid_time_message(ctx)
 
     @commands.command(name='hakkar-drop', aliases=['hakkar-drop-add'], brief='Add user that will drop hakkar along with drop time', help='Sets a hakkar confirmed dropper - example: --hakkar-drop Thatguy 2:54pm')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_hakkar_dropper(self, ctx, name, time):
         global hakkar_drops
-        if await validate_time_format(time):
-            await add_dropper(hakkar_drops, name, time)
-            await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
-        else:
-            await playback_invalid_time_message(ctx)
+        #if await validate_time_format(time):
+        await add_dropper(hakkar_drops, name, time)
+        await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
+        #else:
+        #    await playback_invalid_time_message(ctx)
 
 
 class BuffDropRemoveCommands(commands.Cog, name='Removes the <name> of a buff dropper'):
@@ -640,13 +640,13 @@ async def calc_bvsf_msg():
 
 async def calc_dmt_msg():
     message = await summoners_buffers_msg(dmt_buffs, 'DM buffs')
+    if len(message) == 0:
+        message = 'No buffs available at this time'
     if len(dmt_summons) > 0:
         if len(message) > 0:
             message += '  --  ' + await summoners_buffers_msg(dmt_summons)
         else:
             message = await summoners_buffers_msg(dmt_summons)
-    if len(message) == 0:
-        message = 'None available at this time'
     message = ':crown:  DMT --- ' + message
     return message
 
