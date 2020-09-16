@@ -213,19 +213,20 @@ async def on_ready():
         populate_success = await populate_data_from_message(message_content)
 
         new_message = await get_buff_times()
-        if populate_success:
-            await wbc_channel.send('**Bot restarted....**\nworld-buff-times message reposted')
-        else:
+        if not populate_success:
             await wbc_channel.send('**Bot restarted....**\nExisting Message:\n{0}\n\n\n'.format(message_content))
             await wbc_channel.send('New Message:\n{0}\n\nSome discrepencies may exist in existing vs new message after restart, please verify'.format(new_message))
+        #else:
+            #await wbc_channel.send('**Bot restarted....**\nworld-buff-times message reposted')
         await message.edit(content = new_message)
     else:
         await wbc_channel.send('**Bot restarted....**\nNo exising message found, all data cleared')
 
 @bot.event
 async def on_message(message):
-    if message.channel.id != WBC_CHANNEL_ID:
-        # only read messages from designated channel
+    print('!swb-help' in message.content)
+    if message.channel.id != WBC_CHANNEL_ID and not ('!swb-help' in message.content):
+        # only read non-help messages from designated channel
         return
     await bot.process_commands(message)
 
