@@ -224,7 +224,6 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
-    print('!swb-help' in message.content)
     if message.channel.id != WBC_CHANNEL_ID and not ('!swb-help' in message.content):
         # only read non-help messages from designated channel
         return
