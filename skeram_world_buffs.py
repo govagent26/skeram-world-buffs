@@ -235,6 +235,7 @@ class BuffAvailTimeCommands(commands.Cog, name='Specifies the <time> when the bu
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_rend_time(self, ctx, time):
         global rend_time
+        await check_droppers_for_removal_on_drop(ctx, rend_drops, rend_time)
         rend_time = await remove_command_surrounding_special_characters(time)
         await post_in_world_buffs_chat_channel()
         await playback_message(ctx, 'Rend buff timer updated to:\n' + await calc_rend_msg())
@@ -243,6 +244,7 @@ class BuffAvailTimeCommands(commands.Cog, name='Specifies the <time> when the bu
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_ony_time(self, ctx, time):
         global ony_time
+        await check_droppers_for_removal_on_drop(ctx, ony_drops, ony_time)
         ony_time = await remove_command_surrounding_special_characters(time)
         await post_in_world_buffs_chat_channel()
         await playback_message(ctx, 'Ony buff timer updated to:\n' + await calc_ony_msg())
@@ -251,6 +253,7 @@ class BuffAvailTimeCommands(commands.Cog, name='Specifies the <time> when the bu
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_nef_time(self, ctx, time):
         global nef_time
+        await check_droppers_for_removal_on_drop(ctx, nef_drops, nef_time)
         nef_time = await remove_command_surrounding_special_characters(time)
         await post_in_world_buffs_chat_channel()
         await playback_message(ctx, 'Nef buff timer updated to:\n' + await calc_nef_msg())
@@ -792,6 +795,13 @@ async def has_rights_to_remove(summoners_buffers, name, author):
         raise commands.errors.MissingRole(WORLD_BUFF_COORDINATOR_ROLE_ID)
         return False
     return True
+
+async def check_droppers_for_removal_on_drop(ctx, drops, old_drop_time):
+    for drop in drops:
+        if drop.time == old_drop_time:
+            #old time found, remove dropper and post message
+            await ctx.send('Dropper found whose time matched old time, assuming a drop was done and removing dropper:\n  {0.time} (**{0.name}**)'.format(drop))
+            drops.remove(drop)
 
 async def remove_command_surrounding_special_characters(text):
     if (text.startswith('<') and text.endswith('>')) or (text.startswith('[') and text.endswith(']')):
