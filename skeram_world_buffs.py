@@ -172,7 +172,7 @@ async def mockup_data(ctx):
     await add_summoner_buffer_no_post(hakkar_bb_summons, 'BBsums', [''])
     global bvsf_time
     global bvsf_summons
-    #bvsf_time = '4:35pm'
+    bvsf_time = '4:35pm'
     await add_summoner_buffer_no_post(bvsf_summons, 'Whosums', ['5g'])
     global dmt_buffs
     global dmt_summons
@@ -230,8 +230,16 @@ async def on_ready():
 
 @tasks.loop(minutes=1)
 async def check_for_message_updates():
+    global rend_time
+    global rend_drops
+    global ony_time
+    global ony_drops
+    global nef_time
+    global nef_drops
     global bvsf_time
     global bvsf_update_count
+    global hakkar_drops
+    post_updates = False
     wbc_channel = bot.get_channel(WBC_CHANNEL_ID)
     if await check_for_bvsf_updates():
         if bvsf_update_count > 10:
@@ -242,13 +250,29 @@ async def check_for_message_updates():
             await wbc_channel.send('BVSF time passed so was auto-updated to:\n' + await calc_bvsf_msg())
             if bvsf_update_count > 5:
                 await wbc_channel.send('BVSF time not verified/manually updated in over 2 hours, is it correct?')
+        post_updates = True
+    if await calc_minutes_since_drop(rend_time) > 2:
+        await wbc_channel.send('Rend time ({0}) is in the past, being set to OPEN?? - was it dropped or is it OPEN? (next drop time around ~{1}?)'.format(rend_time, await calculate_next_time(rend_time, 180)))
+        await check_droppers_for_removal_on_drop(wbc_channel, rend_drops, rend_time)
+        rend_time = 'OPEN??'
+        post_updates = True
+    if await calc_minutes_since_drop(ony_time) > 2:
+        await wbc_channel.send('Ony time ({0}) is in the past, being set to OPEN?? - was it dropped or is it OPEN? (next drop time around ~{1}?)'.format(ony_time, await calculate_next_time(ony_time, 360)))
+        await check_droppers_for_removal_on_drop(wbc_channel, ony_drops, ony_time)
+        ony_time = 'OPEN??'
+        post_updates = True
+    if await calc_minutes_since_drop(nef_time) > 2:
+        await wbc_channel.send('Nef time ({0}) is in the past, being set to OPEN?? - was it dropped or is it OPEN? (next drop time around ~{1}?)'.format(nef_time, await calculate_next_time(nef_time, 480)))
+        await check_droppers_for_removal_on_drop(wbc_channel, nef_drops, nef_time)
+        nef_time = 'OPEN??'
+        post_updates = True
+    for drop in hakkar_drops:
+        if await calc_minutes_since_drop(drop.time) > 2:
+            await wbc_channel.send('Hakkar dropper time is in the past, assuming a drop was done and removing dropper:\n  {0.time} (**{0.name}**)'.format(drop))
+            hakkar_drops.remove(drop)
+            post_updates = True
+    if post_updates:
         await post_in_world_buffs_chat_channel()
-    if await check_for_drop_updates(rend_time) % 10 == 1:
-        await wbc_channel.send('Rend open time is in the past, is it OPEN, or was it dropped? (next drop time around {0}??)'.format(await calculate_next_time(rend_time, 180)))
-    if await check_for_drop_updates(ony_time) % 10 == 1:
-        await wbc_channel.send('Ony open time is in the past, is it OPEN, or was it dropped? (next drop time around {0}??)'.format(await calculate_next_time(ony_time, 360)))
-    if await check_for_drop_updates(nef_time) % 10 == 1:
-        await wbc_channel.send('Nef open time is in the past, is it OPEN, or was it dropped? (next drop time around {0}??)'.format(await calculate_next_time(nef_time, 360)))
 
 @bot.event
 async def on_message(message):
@@ -263,6 +287,7 @@ class BuffAvailTimeCommands(commands.Cog, name='Specifies the <time> when the bu
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_rend_time(self, ctx, time):
         global rend_time
+        global rend_drops
         await check_droppers_for_removal_on_drop(ctx, rend_drops, rend_time)
         rend_time = await remove_command_surrounding_special_characters(time)
         await post_in_world_buffs_chat_channel()
@@ -272,6 +297,7 @@ class BuffAvailTimeCommands(commands.Cog, name='Specifies the <time> when the bu
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_ony_time(self, ctx, time):
         global ony_time
+        global ony_drops
         await check_droppers_for_removal_on_drop(ctx, ony_drops, ony_time)
         ony_time = await remove_command_surrounding_special_characters(time)
         await post_in_world_buffs_chat_channel()
@@ -281,6 +307,7 @@ class BuffAvailTimeCommands(commands.Cog, name='Specifies the <time> when the bu
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_nef_time(self, ctx, time):
         global nef_time
+        global nef_drops
         await check_droppers_for_removal_on_drop(ctx, nef_drops, nef_time)
         nef_time = await remove_command_surrounding_special_characters(time)
         await post_in_world_buffs_chat_channel()
@@ -743,7 +770,9 @@ async def check_for_bvsf_updates():
     else:
         return False
 
-async def check_for_drop_updates(time):
+async def calc_minutes_since_drop(time):
+    if not await validate_time_format(time):
+        return -1
     local_time = await get_local_time()
     date_time = datetime.strptime(time, '%I:%M%p')
     new_time = local_time.replace(hour=date_time.hour, minute=date_time.minute)
