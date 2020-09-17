@@ -4,7 +4,7 @@ import random
 import re
 import platform
 
-from discord.ext import commands
+from discord.ext import commands, tasks
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from pytz import timezone
@@ -60,6 +60,7 @@ dmf_summons = []
 alliance = ''
 extra_message = ''
 
+bvsf_update_count = 0
 
 
 @bot.command(name="help", description="Prints this message of all commands - note when using commands, do not include < > [ ] ")
@@ -225,6 +226,29 @@ async def on_ready():
         await message.edit(content = new_message)
     else:
         await wbc_channel.send('**Bot restarted....**\nNo exising message found, all data cleared')
+    check_for_message_updates.start()
+
+@tasks.loop(minutes=1)
+async def check_for_message_updates():
+    global bvsf_time
+    global bvsf_update_count
+    wbc_channel = bot.get_channel(WBC_CHANNEL_ID)
+    if await check_for_bvsf_updates():
+        if bvsf_update_count > 10:
+            bvsf_time = '?:??'
+            bvsf_update_count = 0
+            await wbc_channel.send('BVSF time not verified/manually updated in over 4 hours - was cleared')
+        else:
+            await wbc_channel.send('BVSF time passed so was auto-updated to:\n' + await calc_bvsf_msg())
+            if bvsf_update_count > 5:
+                await wbc_channel.send('BVSF time not verified/manually updated in over 2 hours, is it correct?')
+        await post_in_world_buffs_chat_channel()
+    if await check_for_drop_updates(rend_time) % 10 == 1:
+        await wbc_channel.send('Rend open time is in the past, is it OPEN, or was it dropped? (next drop time around {0}??)'.format(await calculate_next_time(rend_time, 180)))
+    if await check_for_drop_updates(ony_time) % 10 == 1:
+        await wbc_channel.send('Ony open time is in the past, is it OPEN, or was it dropped? (next drop time around {0}??)'.format(await calculate_next_time(ony_time, 360)))
+    if await check_for_drop_updates(nef_time) % 10 == 1:
+        await wbc_channel.send('Nef open time is in the past, is it OPEN, or was it dropped? (next drop time around {0}??)'.format(await calculate_next_time(nef_time, 360)))
 
 @bot.event
 async def on_message(message):
@@ -268,9 +292,11 @@ class BVSFBuffCommands(commands.Cog, name = 'Sets the next <time> the BVSF flowe
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_bvsf_time(self, ctx, time):
         global bvsf_time
+        global bvsf_update_count
         clean_time = await remove_command_surrounding_special_characters(time)
         if await validate_time_format(clean_time):
             bvsf_time = clean_time
+            bvsf_update_count = 0
             await post_in_world_buffs_chat_channel()
             await playback_message(ctx, 'BVSF buff timer updated to:\n' + await calc_bvsf_msg())
         else:
@@ -647,8 +673,8 @@ async def calc_hakkar_msg():
 
 async def calc_bvsf_msg():
     if await validate_time_format(bvsf_time):
-        next_time_1 = await calculate_next_flower(bvsf_time)
-        next_time_2 = await calculate_next_flower(next_time_1)
+        next_time_1 = await calculate_next_time(bvsf_time, 25)
+        next_time_2 = await calculate_next_time(next_time_1, 25)
         message = ':wilted_rose:  BVSF --- ' + bvsf_time + ' -> ' + next_time_1 + ' -> ' + next_time_2
     else:
         message = ':wilted_rose:  BVSF --- ' + bvsf_time
@@ -703,14 +729,32 @@ async def calc_dmf_msg():
 
 async def check_for_bvsf_updates():
     global bvsf_time
+    global bvsf_update_count
     if not await validate_time_format(bvsf_time):
-        return;
+        return False;
     local_time = await get_local_time()
     bvsf_date_time = datetime.strptime(bvsf_time, '%I:%M%p')
     new_time = local_time.replace(hour=bvsf_date_time.hour, minute=bvsf_date_time.minute)
-    while local_time > new_time:
+    if local_time > new_time:
         new_time += timedelta(minutes=25)
-    bvsf_time = datetime.strftime(new_time, PRINT_TIME_FORMAT).lower()
+        bvsf_time = datetime.strftime(new_time, PRINT_TIME_FORMAT).lower()
+        bvsf_update_count += 1
+        return True
+    else:
+        return False
+
+async def check_for_drop_updates(time):
+    local_time = await get_local_time()
+    date_time = datetime.strptime(time, '%I:%M%p')
+    new_time = local_time.replace(hour=date_time.hour, minute=date_time.minute)
+    if local_time > new_time:
+        time_delta = (local_time - new_time)
+        total_seconds = time_delta.total_seconds()
+        minutes = total_seconds / 60
+        return minutes
+    else:
+        return -1
+
 
 async def get_local_time():
     utc = timezone('UTC')
@@ -822,11 +866,11 @@ async def construct_args_message(args):
     message = await remove_command_surrounding_special_characters(message)
     return message
 
-async def calculate_next_flower(time_str):
+async def calculate_next_time(time_str, minutes_to_add):
     if not await validate_time_format(time_str):
         return;
     time = datetime.strptime(time_str, '%I:%M%p')
-    new_time = time + timedelta(minutes=25)
+    new_time = time + timedelta(minutes=minutes_to_add)
     return datetime.strftime(new_time, PRINT_TIME_FORMAT).lower()
 
 async def validate_time_format(time):
