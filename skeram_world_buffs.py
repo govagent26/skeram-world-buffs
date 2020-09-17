@@ -235,7 +235,7 @@ class BuffAvailTimeCommands(commands.Cog, name='Specifies the <time> when the bu
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_rend_time(self, ctx, time):
         global rend_time
-        rend_time = time
+        rend_time = await remove_command_surrounding_special_characters(time)
         await post_in_world_buffs_chat_channel()
         await playback_message(ctx, 'Rend buff timer updated to:\n' + await calc_rend_msg())
 
@@ -243,7 +243,7 @@ class BuffAvailTimeCommands(commands.Cog, name='Specifies the <time> when the bu
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_ony_time(self, ctx, time):
         global ony_time
-        ony_time = time
+        ony_time = await remove_command_surrounding_special_characters(time)
         await post_in_world_buffs_chat_channel()
         await playback_message(ctx, 'Ony buff timer updated to:\n' + await calc_ony_msg())
 
@@ -251,7 +251,7 @@ class BuffAvailTimeCommands(commands.Cog, name='Specifies the <time> when the bu
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_nef_time(self, ctx, time):
         global nef_time
-        nef_time = time
+        nef_time = await remove_command_surrounding_special_characters(time)
         await post_in_world_buffs_chat_channel()
         await playback_message(ctx, 'Nef buff timer updated to:\n' + await calc_nef_msg())
 
@@ -261,8 +261,9 @@ class BVSFBuffCommands(commands.Cog, name = 'Sets the next <time> the BVSF flowe
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_bvsf_time(self, ctx, time):
         global bvsf_time
-        if await validate_time_format(time):
-            bvsf_time = time
+        clean_time = await remove_command_surrounding_special_characters(time)
+        if await validate_time_format(clean_time):
+            bvsf_time = clean_time
             await post_in_world_buffs_chat_channel()
             await playback_message(ctx, 'BVSF buff timer updated to:\n' + await calc_bvsf_msg())
         else:
@@ -728,38 +729,42 @@ async def add_dropper(droppers, name, time):
     await post_in_world_buffs_chat_channel()
 
 async def add_dropper_no_post(droppers, name, time):
+    clean_title_name = (await remove_command_surrounding_special_characters(name)).title()
+    clean_time = await remove_command_surrounding_special_characters(time)
     for drop in droppers:
-        if drop.name == name.title():
-            drop.time = time
+        if drop.name == clean_title_name:
+            drop.time = clean_time
             return
 
-    dropper = Dropper(time, name.title())
+    dropper = Dropper(clean_time, clean_title_name)
     droppers.append(dropper)
 
-async def add_summoner_buffer(summoners_buffers, name, note, author=''):
-    await add_summoner_buffer_no_post(summoners_buffers, name, note, author)
+async def add_summoner_buffer(summoners_buffers, name, note, author_id=''):
+    await add_summoner_buffer_no_post(summoners_buffers, name, note, author_id)
     await post_in_world_buffs_chat_channel()
 
-async def add_summoner_buffer_no_post(summoners_buffers, name, note, author=''):
+async def add_summoner_buffer_no_post(summoners_buffers, name, note, author_id=''):
+    clean_title_name = (await remove_command_surrounding_special_characters(name)).title()
     message = await construct_args_message(note)
     if len(message) > 30:
         message = message[:30]
     for summon_buff in summoners_buffers:
-        if summon_buff.name == name.title():
+        if summon_buff.name == clean_title_name:
             summon_buff.msg = message
             return
 
-    summoner_buffer = SummonerBuffer(name.title(), message, author)
+    summoner_buffer = SummonerBuffer(clean_title_name, message, author_id)
     summoners_buffers.append(summoner_buffer)
 
 async def remove_summoner_buffer_dropper(ctx, summoners_buffers_droppers, name):
+    clean_title_name = (await remove_command_surrounding_special_characters(name)).title()
     for summon_buff_drop in summoners_buffers_droppers:
-        if summon_buff_drop.name == name.title():
+        if summon_buff_drop.name == clean_title_name:
             summoners_buffers_droppers.remove(summon_buff_drop)
             await post_in_world_buffs_chat_channel()
             return True
 
-    await ctx.send('Name **{0}** not found - nothing to remove'.format(name))
+    await ctx.send('Name **{0}** not found - nothing to remove'.format(clean_title_name))
     return False
 
 async def has_rights_to_remove(summoners_buffers, name, author):
@@ -778,12 +783,19 @@ async def has_rights_to_remove(summoners_buffers, name, author):
         return False
     return True
 
+async def remove_command_surrounding_special_characters(text):
+    if (text.startswith('<') and text.endswith('>')) or (text.startswith('[') and text.endswith(']')):
+        return text[1:-1]
+    else:
+        return text
+
 async def construct_args_message(args):
     message = ''
     for index in range(len(args)):
         if index > 0:
             message = message + ' '
         message += args[index]
+    message = await remove_command_surrounding_special_characters(message)
     return message
 
 async def calculate_next_flower(time_str):
@@ -798,7 +810,7 @@ async def validate_time_format(time):
     return valid
 
 async def playback_invalid_time_message(ctx):
-    await ctx.send('Invalid time provided, format must be (H)H:MM[am|pm] - example: {0.prefix}{0.command.name} 2:54pm'.format(ctx))
+    await ctx.send('Invalid time provided, format must be HH:MM[am|pm] - example: {0.prefix}{0.command.name} 2:54pm'.format(ctx))
 
 async def playback_message(ctx, message):
     if (playback_updates):
@@ -842,7 +854,7 @@ async def populate_data_from_message(message):
             global server_maintenance
             strings = line.split(':tools:')
             non_bold_strings = strings[1].split('**')
-            server_maintenance = non_bold_strings[1]
+            server_maintenance = await remove_command_surrounding_special_characters(non_bold_strings[1])
             if await get_maintenance() != line + '\n\n':
                 populate_success = False
                 print('server_status')
@@ -852,7 +864,7 @@ async def populate_data_from_message(message):
             global rend_drops
             strings = line.split(':japanese_ogre:  Rend --- ')
             parts = strings[1].split('(')
-            rend_time = parts[0].strip()
+            rend_time = await remove_command_surrounding_special_characters(parts[0].strip())
             await process_droppers(rend_drops, parts[1:], rend_time)
             if await calc_rend_msg() != line:
                 populate_success = False
@@ -863,7 +875,7 @@ async def populate_data_from_message(message):
             global ony_drops
             strings = line.split(':dragon:  Ony --- ')
             parts = strings[1].split('(')
-            ony_time = parts[0].strip()
+            ony_time = await remove_command_surrounding_special_characters(parts[0].strip())
             await process_droppers(ony_drops, parts[1:], ony_time)
             if await calc_ony_msg() != line:
                 populate_success = False
@@ -874,7 +886,7 @@ async def populate_data_from_message(message):
             global nef_drops
             strings = line.split(':dragon_face:  Nef --- ')
             parts = strings[1].split('(')
-            nef_time = parts[0].strip()
+            nef_time = await remove_command_surrounding_special_characters(parts[0].strip())
             await process_droppers(nef_drops, parts[1:], nef_time)
             if await calc_nef_msg() != line:
                 populate_success = False
@@ -970,7 +982,7 @@ async def populate_data_from_message(message):
             #:warning:  ALLY ALL OVER
             global alliance
             strings = line.split(':warning:')
-            alliance = strings[1].strip()
+            alliance = await remove_command_surrounding_special_characters(strings[1].strip())
             if await get_alliance() != line + '\n':
                 populate_success = False
                 print('ally')
@@ -978,7 +990,7 @@ async def populate_data_from_message(message):
             #:airplane: :heartpulse::wilted_rose::crown::bug: :mountain: Denmule selling 8g summons to all raid & buff locations. Whisper 'inv __' with destination (i.e. DMT, BVSF, YI, AQ, BWL, MC, Org, ZG)
             global extra_message
             if line != '':
-                extra_message = line
+                extra_message = await remove_command_surrounding_special_characters(line)
                 if await get_extra_message() != '\n' + line + '\n':
                     populate_success = False
                     print('extra_message')
