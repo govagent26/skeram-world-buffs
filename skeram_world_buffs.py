@@ -321,11 +321,13 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_hakkar_dropper(self, ctx, name, time):
         global hakkar_drops
-        #if await validate_time_format(time):
-        await add_dropper(hakkar_drops, name, time)
-        await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
-        #else:
-        #    await playback_invalid_time_message(ctx)
+        if await validate_time_format(time):
+            await add_dropper_no_post(hakkar_drops, name, time)
+            hakkar_drops.sort(key=sort_by_time)
+            await post_in_world_buffs_chat_channel()
+            await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
+        else:
+            await playback_invalid_time_message(ctx)
 
 
 class BuffDropRemoveCommands(commands.Cog, name='Removes the <name> of a buff dropper'):
@@ -814,7 +816,7 @@ async def calculate_next_flower(time_str):
     return datetime.strftime(new_time, '%-I:%M%p').lower()
 
 async def validate_time_format(time):
-    valid = re.search('^[0-2]?[0-9]:[0-5][0-9][a,p]m$', time)
+    valid = re.search('^[0-1]?[0-9]:[0-5][0-9][a,p]m$', time)
     return valid
 
 async def playback_invalid_time_message(ctx):
@@ -832,6 +834,9 @@ async def post_in_world_buffs_chat_channel():
         await message.edit(content = await get_buff_times())
     else:
         await channel.send(await get_buff_times())
+
+def sort_by_time(dropper): 
+    return datetime.strptime(dropper.time, '%I:%M%p')  
 
 
 # Sample Message to process
@@ -912,6 +917,7 @@ async def populate_data_from_message(message):
                     drop_parts = drop.split(' (')
                     drop_name = drop_parts[1].split('**')
                     await add_dropper_no_post(hakkar_drops, drop_name[1], drop_parts[0].strip())
+                hakkar_drops.sort(key=sort_by_time)
             for summon_zone in parts[1:]:
                 if 'YI summons' in summon_zone:
                     await process_summoners_buffers(hakkar_yi_summons, summon_zone)
