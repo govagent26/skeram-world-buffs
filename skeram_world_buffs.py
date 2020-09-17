@@ -2,11 +2,13 @@
 import os
 import random
 import re
+import platform
 
 from discord.ext import commands
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from pytz import timezone
+
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -15,6 +17,9 @@ WBC_CHANNEL_ID = int(os.getenv('WBC_CHANNEL_ID'))
 WORLD_BUFF_COORDINATOR_ROLE_ID = int(os.getenv('WORLD_BUFF_COORDINATOR_ROLE_ID'))
 WORLD_BUFF_SELLER_ROLE_ID = int(os.getenv('WORLD_BUFF_SELLER_ROLE_ID'))
 MASTER_ID = int(os.getenv('MASTER_ID'))
+
+PRINT_TIME_FORMAT = '%-I:%M%p' if platform.system() != 'Windows' else '%#I:%M%p'
+
 
 bot = commands.Bot(command_prefix='--', case_insensitive=True)
 bot.remove_command('help')
@@ -31,7 +36,6 @@ class SummonerBuffer:
         self.name = n
         self.msg = m
         self.author = a
-
 
 playback_updates = True
 server_maintenance = ''
@@ -272,9 +276,9 @@ class BVSFBuffCommands(commands.Cog, name = 'Sets the next <time> the BVSF flowe
         else:
             await playback_invalid_time_message(ctx)
 
-    @commands.command(name='bvsf-corrupted', aliases=['bvsf-corrupt'], brief='Sets the BVSF as corrupted', help='Sets the flower as corrupted - example: --bvsf-corrupted 2:54pm')
+    @commands.command(name='bvsf-corrupted', aliases=['bvsf-corrupt'], brief='Sets the BVSF as corrupted', help='Sets the flower as corrupted - example: --bvsf-corrupted')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
-    async def set_bvsf_time(self, ctx, time):
+    async def set_bvsf_corrupted(self, ctx):
         global bvsf_time
         bvsf_time = 'CORRUPTED'
         await post_in_world_buffs_chat_channel()
@@ -589,7 +593,7 @@ async def get_buff_times():
 
 async def get_timestamp():
     local_time = await get_local_time()
-    return '**Updated as of ' + datetime.strftime(local_time, '%Y-%m-%d at %#I:%M%p').lower() + ' ST**\n\n'
+    return '**Updated as of ' + datetime.strftime(local_time, '%Y-%m-%d at ' + PRINT_TIME_FORMAT).lower() + ' ST**\n\n'
 
 async def get_maintenance():
     if len(server_maintenance) > 0:
@@ -706,7 +710,7 @@ async def check_for_bvsf_updates():
     new_time = local_time.replace(hour=bvsf_date_time.hour, minute=bvsf_date_time.minute)
     while local_time > new_time:
         new_time += timedelta(minutes=25)
-    bvsf_time = datetime.strftime(new_time, '%-I:%M%p').lower()
+    bvsf_time = datetime.strftime(new_time, PRINT_TIME_FORMAT).lower()
 
 async def get_local_time():
     utc = timezone('UTC')
@@ -823,7 +827,7 @@ async def calculate_next_flower(time_str):
         return;
     time = datetime.strptime(time_str, '%I:%M%p')
     new_time = time + timedelta(minutes=25)
-    return datetime.strftime(new_time, '%-I:%M%p').lower()
+    return datetime.strftime(new_time, PRINT_TIME_FORMAT).lower()
 
 async def validate_time_format(time):
     valid = re.search('^[0-1]?[0-9]:[0-5][0-9][a,p]m$', time)
