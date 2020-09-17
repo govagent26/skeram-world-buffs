@@ -269,6 +269,14 @@ class BVSFBuffCommands(commands.Cog, name = 'Sets the next <time> the BVSF flowe
         else:
             await playback_invalid_time_message(ctx)
 
+    @commands.command(name='bvsf-corrupted', aliases=['bvsf-corrupt'], brief='Sets the BVSF as corrupted', help='Sets the flower as corrupted - example: --bvsf-corrupted 2:54pm')
+    @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
+    async def set_bvsf_time(self, ctx, time):
+        global bvsf_time
+        bvsf_time = 'CORRUPTED'
+        await post_in_world_buffs_chat_channel()
+        await playback_message(ctx, 'BVSF buff timer updated to:\n' + await calc_bvsf_msg())
+
     @commands.command(name='bvsf-clear', brief='Clears BVSF time, sets to ?:??', help='Sets the BVSF time to ?:?? - example: --bvsf-clear')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def clear_bvsf_time(self, ctx):
