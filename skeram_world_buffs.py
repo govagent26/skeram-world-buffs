@@ -347,7 +347,7 @@ class BVSFBuffCommands(commands.Cog, name = 'Sets the next <time> the BVSF flowe
 
 
 class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper and the planned <time>'):
-    @commands.command(name='rend-drop', aliases=['rend-drop-add'], brief='Add user that will drop rend along with drop time', help='Sets a rend confirmed dropper - example: --rend-drop Thatguy 2:54pm')
+    @commands.command(name='rend-drop', aliases=['rend-drop-add', 'rend-drops', 'rend-drops-add'], brief='Add user that will drop rend along with drop time', help='Sets a rend confirmed dropper - example: --rend-drop Thatguy 2:54pm')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_rend_dropper(self, ctx, name, time):
         global rend_drops
@@ -357,7 +357,7 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
         #else:
         #    await playback_invalid_time_message(ctx)
 
-    @commands.command(name='ony-drop', aliases=['ony-drop-add'], brief='Add user that will drop ony along with drop time', help='Sets a ony confirmed dropper - example: --ony-drop Thatguy 2:54pm')
+    @commands.command(name='ony-drop', aliases=['ony-drop-add', 'ony-drops', 'ony-drops-add'], brief='Add user that will drop ony along with drop time', help='Sets a ony confirmed dropper - example: --ony-drop Thatguy 2:54pm')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_ony_dropper(self, ctx, name, time):
         global ony_drops
@@ -367,7 +367,7 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
         #else:
         #    await playback_invalid_time_message(ctx)
 
-    @commands.command(name='nef-drop', aliases=['nef-drop-add'], brief='Add user that will drop nef along with drop time', help='Sets a nef confirmed dropper - example: --nef-drop Thatguy 2:54pm')
+    @commands.command(name='nef-drop', aliases=['nef-drop-add', 'nef-drops', 'nef-drops-add'], brief='Add user that will drop nef along with drop time', help='Sets a nef confirmed dropper - example: --nef-drop Thatguy 2:54pm')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_nef_dropper(self, ctx, name, time):
         global nef_drops
@@ -377,7 +377,7 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
         #else:
         #    await playback_invalid_time_message(ctx)
 
-    @commands.command(name='hakkar-drop', aliases=['hakkar-drop-add'], brief='Add user that will drop hakkar along with drop time', help='Sets a hakkar confirmed dropper - example: --hakkar-drop Thatguy 2:54pm')
+    @commands.command(name='hakkar-drop', aliases=['hakkar-drop-add', 'hakkar-drops', 'hakkar-drops-add'], brief='Add user that will drop hakkar along with drop time', help='Sets a hakkar confirmed dropper - example: --hakkar-drop Thatguy 2:54pm')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_hakkar_dropper(self, ctx, name, time):
         global hakkar_drops
@@ -391,28 +391,28 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
 
 
 class BuffDropRemoveCommands(commands.Cog, name='Removes the <name> of a buff dropper'):
-    @commands.command(name='rend-drop-remove', brief='Remove user dropping rend', help='Removes a rend confirmed dropper - example: --rend-drop-remove Thatguy')
+    @commands.command(name='rend-drop-remove', aliases=['rend-drops-remove'], brief='Remove user dropping rend', help='Removes a rend confirmed dropper - example: --rend-drop-remove Thatguy')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def remove_rend_dropper(self, ctx, name):
         global rend_drops
         if await remove_summoner_buffer_dropper(ctx, rend_drops, name):
             await playback_message(ctx, 'Rend buff timer updated to:\n' + await calc_rend_msg())
 
-    @commands.command(name='ony-drop-remove', brief='Remove user dropping ony', help='Removes a ony confirmed dropper - example: --ony-drop-remove Thatguy')
+    @commands.command(name='ony-drop-remove', aliases=['ony-drops-remove'], brief='Remove user dropping ony', help='Removes a ony confirmed dropper - example: --ony-drop-remove Thatguy')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def remove_ony_dropper(self, ctx, name):
         global ony_drops
         if await remove_summoner_buffer_dropper(ctx, ony_drops, name):
             await playback_message(ctx, 'Ony buff timer updated to:\n' + await calc_ony_msg())
 
-    @commands.command(name='nef-drop-remove', brief='Remove user dropping nef', help='Removes a nef confirmed dropper - example: --nef-drop-remove Thatguy')
+    @commands.command(name='nef-drop-remove', aliases=['nef-drops-remove'], brief='Remove user dropping nef', help='Removes a nef confirmed dropper - example: --nef-drop-remove Thatguy')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def remove_nef_dropper(self, ctx, name):
         global nef_drops
         if await remove_summoner_buffer_dropper(ctx, nef_drops, name):
             await playback_message(ctx, 'Nef buff timer updated to:\n' + await calc_nef_msg())
 
-    @commands.command(name='hakkar-drop-remove', brief='Remove user dropping hakkar', help='Removes a hakkar confirmed dropper - example: --hakkar-drop-remove Thatguy')
+    @commands.command(name='hakkar-drop-remove', aliases=['hakkar-drops-remove'], brief='Remove user dropping hakkar', help='Removes a hakkar confirmed dropper - example: --hakkar-drop-remove Thatguy')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def remove_hakkar_dropper(self, ctx, name):
         global hakkar_drops
