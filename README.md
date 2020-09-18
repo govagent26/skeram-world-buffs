@@ -1,4 +1,4 @@
-![Bot Icon](https://github.com/govagent26/skeram-world-buffs/blob/master/bot_icon.png)
+![Bot Icon](https://github.com/govagent26/skeram-world-buffs/blob/master/images/bot_icon.png)
 # Skeram World Buffs Discord Bot
 
 Creates and updates the world buffs message and posts to the world-buff-time channel on the WoW Skeram server Discord via commands
@@ -73,4 +73,4 @@ Creates and updates the world buffs message and posts to the world-buff-time cha
   ##Specifies an additional footer [message] - specifying no message will hide the message
 
 
-![Sample Bot Updated Message](https://github.com/govagent26/skeram-world-buffs/blob/master/sample_message.JPG)
+![Sample Bot Updated Message](https://github.com/govagent26/skeram-world-buffs/blob/master/images/sample_message.JPG)
