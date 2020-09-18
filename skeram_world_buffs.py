@@ -251,23 +251,23 @@ async def check_for_message_updates():
             if bvsf_update_count > 5:
                 await wbc_channel.send('BVSF time not verified/manually updated in over 2 hours, is it correct?')
         post_updates = True
-    if await calc_minutes_since_drop(rend_time) > 2:
+    if await calc_minutes_since_time(rend_time, 300) > 2:
         await wbc_channel.send('Rend time ({0}) is in the past, being set to OPEN?? - was it dropped or is it OPEN? (next drop time around ~{1}?)'.format(rend_time, await calculate_next_time(rend_time, 180)))
         await check_droppers_for_removal_on_drop(wbc_channel, rend_drops, rend_time)
         rend_time = 'OPEN??'
         post_updates = True
-    if await calc_minutes_since_drop(ony_time) > 2:
+    if await calc_minutes_since_time(ony_time, 600) > 2:
         await wbc_channel.send('Ony time ({0}) is in the past, being set to OPEN?? - was it dropped or is it OPEN? (next drop time around ~{1}?)'.format(ony_time, await calculate_next_time(ony_time, 360)))
         await check_droppers_for_removal_on_drop(wbc_channel, ony_drops, ony_time)
         ony_time = 'OPEN??'
         post_updates = True
-    if await calc_minutes_since_drop(nef_time) > 2:
+    if await calc_minutes_since_time(nef_time, 800) > 2:
         await wbc_channel.send('Nef time ({0}) is in the past, being set to OPEN?? - was it dropped or is it OPEN? (next drop time around ~{1}?)'.format(nef_time, await calculate_next_time(nef_time, 480)))
         await check_droppers_for_removal_on_drop(wbc_channel, nef_drops, nef_time)
         nef_time = 'OPEN??'
         post_updates = True
     for drop in hakkar_drops:
-        if await calc_minutes_since_drop(drop.time) > 2:
+        if await calc_minutes_since_time(drop.time, 200) > 2:
             await wbc_channel.send('Hakkar dropper time is in the past, assuming a drop was done and removing dropper:\n  {0.time} (**{0.name}**)'.format(drop))
             hakkar_drops.remove(drop)
             post_updates = True
@@ -762,7 +762,8 @@ async def check_for_bvsf_updates():
     local_time = await get_local_time()
     bvsf_date_time = datetime.strptime(bvsf_time, '%I:%M%p')
     new_time = local_time.replace(hour=bvsf_date_time.hour, minute=bvsf_date_time.minute)
-    if local_time > new_time:
+    if local_time > new_time and (local_time.hour < 23 or bvsf_date_time.hour > 1):
+            return False
         new_time += timedelta(minutes=25)
         bvsf_time = datetime.strftime(new_time, PRINT_TIME_FORMAT).lower()
         bvsf_update_count += 1
@@ -770,19 +771,25 @@ async def check_for_bvsf_updates():
     else:
         return False
 
-async def calc_minutes_since_drop(time):
+async def calc_minutes_since_time(time, cooldown):
     if not await validate_time_format(time):
         return -1
     local_time = await get_local_time()
+    local_time_num = (local_time.hour * 100) + local_time.minute
+    print(local_time_num)
     date_time = datetime.strptime(time, '%I:%M%p')
     new_time = local_time.replace(hour=date_time.hour, minute=date_time.minute)
-    if local_time > new_time:
-        time_delta = (local_time - new_time)
-        total_seconds = time_delta.total_seconds()
-        minutes = total_seconds / 60
-        return minutes
-    else:
-        return -1
+    new_time_num = (new_time.hour * 100) +  new_time.minute
+    print(new_time_num)
+    if local_time_num < 2400 - cooldown:
+        if local_time > new_time:
+            return local_time_num - new_time_num
+        elif local_time_num < cooldown and new_time_num > 2400 - cooldown:
+            return (2400 - new_time_num) + local_time_num
+    elif (new_time_num > cooldown):
+        if local_time > new_time:
+            return local_time_num - new_time_num
+    return -1
 
 
 async def get_local_time():
