@@ -763,7 +763,6 @@ async def check_for_bvsf_updates():
     bvsf_date_time = datetime.strptime(bvsf_time, '%I:%M%p')
     new_time = local_time.replace(hour=bvsf_date_time.hour, minute=bvsf_date_time.minute)
     if local_time > new_time and (local_time.hour < 23 or bvsf_date_time.hour > 1):
-            return False
         new_time += timedelta(minutes=25)
         bvsf_time = datetime.strftime(new_time, PRINT_TIME_FORMAT).lower()
         bvsf_update_count += 1
