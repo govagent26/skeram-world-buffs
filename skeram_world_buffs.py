@@ -775,16 +775,14 @@ async def calc_minutes_since_time(time, cooldown):
         return -1
     local_time = await get_local_time()
     local_time_num = (local_time.hour * 100) + local_time.minute
-    print(local_time_num)
     date_time = datetime.strptime(time, '%I:%M%p')
     new_time = local_time.replace(hour=date_time.hour, minute=date_time.minute)
     new_time_num = (new_time.hour * 100) +  new_time.minute
-    print(new_time_num)
     if local_time_num < 2400 - cooldown:
         if local_time > new_time:
             return local_time_num - new_time_num
-        elif local_time_num < cooldown and new_time_num > 2400 - cooldown:
-            return (2400 - new_time_num) + local_time_num
+        #elif local_time_num < cooldown and new_time_num > 2400 - cooldown:
+        #    return (2400 - new_time_num) + local_time_num
     elif (new_time_num > cooldown):
         if local_time > new_time:
             return local_time_num - new_time_num
