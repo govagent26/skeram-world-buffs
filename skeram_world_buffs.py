@@ -333,7 +333,7 @@ class BVSFBuffCommands(commands.Cog, name = 'Sets the next <time> the BVSF flowe
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_bvsf_corrupted(self, ctx):
         global bvsf_time
-        bvsf_time = 'CORRUPTED'
+        bvsf_time = '**CORRUPTED**'
         await post_in_world_buffs_chat_channel()
         await playback_message(ctx, 'BVSF buff timer updated to:\n' + await calc_bvsf_msg())
 
