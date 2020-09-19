@@ -20,6 +20,8 @@ MASTER_ID = int(os.getenv('MASTER_ID'))
 
 PRINT_TIME_FORMAT = '%-I:%M%p' if platform.system() != 'Windows' else '%#I:%M%p'
 
+TIME_UNKNOWN = '?:??'
+BVSF_CORRUPTED = '**CORRUPTED**'
 
 bot = commands.Bot(command_prefix='--', case_insensitive=True)
 bot.remove_command('help')
@@ -39,16 +41,16 @@ class SummonerBuffer:
 
 playback_updates = True
 server_maintenance = ''
-rend_time = "?:??"
+rend_time = TIME_UNKNOWN
 rend_drops = []
-ony_time = "?:??"
+ony_time = TIME_UNKNOWN
 ony_drops = []
-nef_time = "?:??"
+nef_time = TIME_UNKNOWN
 nef_drops = []
 hakkar_drops = []
 hakkar_yi_summons = []
 hakkar_bb_summons = []
-bvsf_time = "?:??"
+bvsf_time = TIME_UNKNOWN
 bvsf_summons = []
 dmt_buffs = []
 dmt_summons = []
@@ -102,15 +104,15 @@ async def clear_all_data(ctx):
     server_maintenance = ''
     global rend_time
     global rend_drops
-    rend_time = '?:??'
+    rend_time = TIME_UNKNOWN
     rend_drops = []
     global ony_time
     global ony_drops
-    ony_time = '?:??'
+    ony_time = TIME_UNKNOWN
     ony_drops = []
     global nef_time
     global nef_drops
-    nef_time = '?:??'
+    nef_time = TIME_UNKNOWN
     nef_drops = []
     global hakkar_drops
     global hakkar_yi_summons
@@ -120,7 +122,7 @@ async def clear_all_data(ctx):
     hakkar_bb_summons = []
     global bvsf_time
     global bvsf_summons
-    bvsf_time = "?:??"
+    bvsf_time = TIME_UNKNOWN
     bvsf_summons = []
     global dmt_buffs
     global dmt_summons
@@ -243,32 +245,47 @@ async def check_for_message_updates():
     wbc_channel = bot.get_channel(WBC_CHANNEL_ID)
     if await check_for_bvsf_updates():
         if bvsf_update_count > 10:
-            bvsf_time = '?:??'
+            bvsf_time = TIME_UNKNOWN
             bvsf_update_count = 0
-            await wbc_channel.send('BVSF time not verified/manually updated in over 4 hours - was cleared')
+            await wbc_channel.send(':wilted_rose: BVSF time not verified/manually updated in over 4 hours - was cleared')
         else:
-            await wbc_channel.send('BVSF time passed so was auto-updated to:\n' + await calc_bvsf_msg())
+            await wbc_channel.send(':wilted_rose: BVSF time passed so was auto-updated to:\n' + await calc_bvsf_msg())
             if bvsf_update_count > 5:
                 await wbc_channel.send('BVSF time not verified/manually updated in over 2 hours, is it correct?')
         post_updates = True
     if await calc_minutes_since_time(rend_time, 300) > 2:
-        await wbc_channel.send('Rend time ({0}) is in the past, being set to OPEN?? - was it dropped or is it OPEN? (next drop time around ~{1}?)'.format(rend_time, await calculate_next_time(rend_time, 180)))
-        await check_droppers_for_removal_on_drop(wbc_channel, rend_drops, rend_time)
-        rend_time = 'OPEN??'
+        next_rend_time = await calculate_next_time(rend_time, 180)
+        await wbc_channel.send(':japanese_ogre: Rend time ({0}) is in the past, being updated...'.format(rend_time))
+        if await check_droppers_for_removal_on_drop(wbc_channel, rend_drops, rend_time):
+            await wbc_channel.send('Rend time updated to {1} - matching dropper found so assuming it was dropped...)'.format(next_rend_time))
+            rend_time = next_rend_time
+        else:
+            await wbc_channel.send('Rend time updated to OPEN?? - was it dropped or is it OPEN? (next drop time around ~{1}?)'.format(next_rend_time))
+            rend_time = 'OPEN??'
         post_updates = True
     if await calc_minutes_since_time(ony_time, 600) > 2:
-        await wbc_channel.send('Ony time ({0}) is in the past, being set to OPEN?? - was it dropped or is it OPEN? (next drop time around ~{1}?)'.format(ony_time, await calculate_next_time(ony_time, 360)))
-        await check_droppers_for_removal_on_drop(wbc_channel, ony_drops, ony_time)
-        ony_time = 'OPEN??'
+        next_ony_time = await calculate_next_time(ony_time, 360)
+        await wbc_channel.send(':dragon: Ony time ({0}) is in the past, being updated...'.format(ony_time))
+        if await check_droppers_for_removal_on_drop(wbc_channel, ony_drops, ony_time):
+            await wbc_channel.send('Ony time updated to {1} - matching dropper found so assuming it was dropped...)'.format(next_ony_time))
+            ony_time = next_ony_time
+        else:
+            await wbc_channel.send('Ony time updated to OPEN?? - was it dropped or is it OPEN? (next drop time around ~{1}?)'.format(next_ony_time))
+            ony_time = 'OPEN??'
         post_updates = True
     if await calc_minutes_since_time(nef_time, 800) > 2:
-        await wbc_channel.send('Nef time ({0}) is in the past, being set to OPEN?? - was it dropped or is it OPEN? (next drop time around ~{1}?)'.format(nef_time, await calculate_next_time(nef_time, 480)))
-        await check_droppers_for_removal_on_drop(wbc_channel, nef_drops, nef_time)
-        nef_time = 'OPEN??'
+        next_nef_time = await calculate_next_time(nef_time, 480)
+        await wbc_channel.send(':dragon_face: Nef time ({0}) is in the past, being updated...'.format(nef_time))
+        if await check_droppers_for_removal_on_drop(wbc_channel, nef_drops, nef_time):
+            await wbc_channel.send('Nef time updated to {1} - matching dropper found so assuming it was dropped...)'.format(next_nef_time))
+            nef_time = next_nef_time
+        else:
+            await wbc_channel.send('Nef time updated to OPEN?? - was it dropped or is it OPEN? (next drop time around ~{1}?)'.format(next_nef_time))
+            nef_time = 'OPEN??'
         post_updates = True
     for drop in hakkar_drops:
         if await calc_minutes_since_time(drop.time, 200) > 2:
-            await wbc_channel.send('Hakkar dropper time is in the past, assuming a drop was done and removing dropper:\n  {0.time} (**{0.name}**)'.format(drop))
+            await wbc_channel.send(':heartpulse: Hakkar dropper time is in the past, assuming a drop was done and removing dropper:\n  {0.time} (**{0.name}**)'.format(drop))
             hakkar_drops.remove(drop)
             post_updates = True
     if post_updates:
@@ -333,7 +350,7 @@ class BVSFBuffCommands(commands.Cog, name = 'Sets the next <time> the BVSF flowe
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_bvsf_corrupted(self, ctx):
         global bvsf_time
-        bvsf_time = '**CORRUPTED**'
+        bvsf_time = BVSF_CORRUPTED
         await post_in_world_buffs_chat_channel()
         await playback_message(ctx, 'BVSF buff timer updated to:\n' + await calc_bvsf_msg())
 
@@ -341,7 +358,7 @@ class BVSFBuffCommands(commands.Cog, name = 'Sets the next <time> the BVSF flowe
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def clear_bvsf_time(self, ctx):
         global bvsf_time
-        bvsf_time = '?:??'
+        bvsf_time = TIME_UNKNOWN
         await post_in_world_buffs_chat_channel()
         await playback_message(ctx, 'BVSF buff timer updated to:\n' + await calc_bvsf_msg())
 
@@ -691,7 +708,7 @@ async def calc_hakkar_msg():
             droppers += drop.time + ' (**' + drop.name + '**)'
         message += droppers
     else:
-        message += '?:??'
+        message += TIME_UNKNOWN
     if len(hakkar_yi_summons) > 0:
         message += '  --  ' + await summoners_buffers_msg(hakkar_yi_summons, 'YI summons')
     if len(hakkar_bb_summons) > 0:
@@ -883,6 +900,8 @@ async def check_droppers_for_removal_on_drop(ctx, drops, old_drop_time):
             #old time found, remove dropper and post message
             await ctx.send('Dropper found whose time matched old time, assuming a drop was done and removing dropper:\n  {0.time} (**{0.name}**)'.format(drop))
             drops.remove(drop)
+            return True
+    return False
 
 async def remove_command_surrounding_special_characters(text):
     if (text.startswith('<') and text.endswith('>')) or (text.startswith('[') and text.endswith(']')):
@@ -1002,7 +1021,7 @@ async def populate_data_from_message(message):
             global hakkar_bb_summons
             strings = line.split(':heartpulse:  Hakkar --- ')
             parts = strings[1].split('  --  ')
-            if parts[0] != '?:??':
+            if parts[0] != TIME_UNKNOWN:
                 drops = parts[0].split(',')
                 for drop in drops:
                     drop_parts = drop.split(' (')
