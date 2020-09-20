@@ -254,7 +254,7 @@ async def check_for_message_updates():
                 await wbc_channel.send('BVSF time not verified/manually updated in over 2 hours, is it correct?')
         post_updates = True
     if await calc_minutes_since_time(rend_time) > 2:
-        next_rend_time = await calculate_next_time(rend_time, 180)
+        next_rend_time = await calculate_next_time(rend_time, 180+1)
         await wbc_channel.send(':japanese_ogre: Rend time ({0}) is in the past, being updated...'.format(rend_time))
         if await check_droppers_for_removal_on_drop(wbc_channel, rend_drops, rend_time):
             await wbc_channel.send('Rend time updated to **{0}** - matching dropper found so assuming it was dropped...'.format(next_rend_time))
@@ -264,7 +264,7 @@ async def check_for_message_updates():
             rend_time = 'OPEN??'
         post_updates = True
     if await calc_minutes_since_time(ony_time) > 2:
-        next_ony_time = await calculate_next_time(ony_time, 360)
+        next_ony_time = await calculate_next_time(ony_time, 360+1)
         await wbc_channel.send(':dragon: Ony time ({0}) is in the past, being updated...'.format(ony_time))
         if await check_droppers_for_removal_on_drop(wbc_channel, ony_drops, ony_time):
             await wbc_channel.send('Ony time updated to **{0}** - matching dropper found so assuming it was dropped...'.format(next_ony_time))
@@ -274,7 +274,7 @@ async def check_for_message_updates():
             ony_time = 'OPEN??'
         post_updates = True
     if await calc_minutes_since_time(nef_time) > 2:
-        next_nef_time = await calculate_next_time(nef_time, 480)
+        next_nef_time = await calculate_next_time(nef_time, 480+1)
         await wbc_channel.send(':dragon_face: Nef time ({0}) is in the past, being updated...'.format(nef_time))
         if await check_droppers_for_removal_on_drop(wbc_channel, nef_drops, nef_time):
             await wbc_channel.send('Nef time updated to **{0}** - matching dropper found so assuming it was dropped...'.format(next_nef_time))
