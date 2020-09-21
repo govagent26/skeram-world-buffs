@@ -263,6 +263,14 @@ async def check_for_message_updates():
             await wbc_channel.send('Rend time updated to **OPEN??** - was it dropped or is it OPEN? (next drop time around ~{0}?)'.format(next_rend_time))
             rend_time = 'OPEN??'
         post_updates = True
+    elif await time_is_open(rend_time):
+        for drop in rend_drops:
+            if await calc_minutes_since_time(drop.time) > 2:
+                next_rend_time = await calculate_next_time(drop.time, 180+1)
+                await wbc_channel.send(':japanese_ogre: Rend dropper time is in the past and rend is off CD, assuming a drop was done and updating...\n  removing dropper: {0.time} (**{0.name}**)\n  Old rend time **{1}** updated to New rend time **{2}**'.format(drop, rend_time, next_rend_time))
+                rend_time = next_rend_time
+                rend_drops.remove(drop)
+                post_updates = True
     if await calc_minutes_since_time(ony_time) > 2:
         next_ony_time = await calculate_next_time(ony_time, 360+1)
         await wbc_channel.send(':dragon: Ony time ({0}) is in the past, being updated...'.format(ony_time))
@@ -273,6 +281,14 @@ async def check_for_message_updates():
             await wbc_channel.send('Ony time updated to **OPEN??** - was it dropped or is it OPEN? (next drop time around ~{0}?)'.format(next_ony_time))
             ony_time = 'OPEN??'
         post_updates = True
+    elif await time_is_open(ony_time):
+        for drop in ony_drops:
+            if await calc_minutes_since_time(drop.time) > 2:
+                next_ony_time = await calculate_next_time(drop.time, 360+1)
+                await wbc_channel.send(':dragon: Ony dropper time is in the past and ony is off CD, assuming a drop was done and updating...\n  removing dropper: {0.time} (**{0.name}**)\n  Old ony time **{1}** updated to New ony time **{2}**'.format(drop, ony_time, next_ony_time))
+                ony_time = next_ony_time
+                ony_drops.remove(drop)
+                post_updates = True
     if await calc_minutes_since_time(nef_time) > 2:
         next_nef_time = await calculate_next_time(nef_time, 480+1)
         await wbc_channel.send(':dragon_face: Nef time ({0}) is in the past, being updated...'.format(nef_time))
@@ -283,6 +299,14 @@ async def check_for_message_updates():
             await wbc_channel.send('Nef time updated to **OPEN??** - was it dropped or is it OPEN? (next drop time around ~{0}?)'.format(next_nef_time))
             nef_time = 'OPEN??'
         post_updates = True
+    elif await time_is_open(nef_time):
+        for drop in nef_drops:
+            if await calc_minutes_since_time(drop.time) > 2:
+                next_nef_time = await calculate_next_time(drop.time, 480+1)
+                await wbc_channel.send(':dragon_face: Nef dropper time is in the past and nef is off CD, assuming a drop was done and updating...\n  removing dropper: {0.time} (**{0.name}**)\n  Old nef time **{1}** updated to New nef time **{2}**'.format(drop, nef_time, next_nef_time))
+                nef_time = next_nef_time
+                nef_drops.remove(drop)
+                post_updates = True
     for drop in hakkar_drops:
         if await calc_minutes_since_time(drop.time) > 2:
             await wbc_channel.send(':heartpulse: Hakkar dropper time is in the past, assuming a drop was done and removing dropper:\n  {0.time} (**{0.name}**)'.format(drop))
@@ -797,6 +821,9 @@ async def calc_minutes_since_time(time):
     if 30 > minutes > 0:
         return minutes
     return -1
+
+async def time_is_open(time):
+    return True if 'open' in time.lower() else False
 
 
 async def get_local_time():
