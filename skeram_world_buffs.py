@@ -407,33 +407,33 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
             await playback_invalid_time_message(ctx)
 
 
-class BuffDropRemoveCommands(commands.Cog, name='Removes the <name> of a buff dropper'):
+class BuffDropRemoveCommands(commands.Cog, name='Removes a buff dropper with matching <name or time>'):
     @commands.command(name='rend-drop-remove', aliases=['rend-drops-remove'], brief='Remove user dropping rend', help='Removes a rend confirmed dropper - example: --rend-drop-remove Thatguy')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
-    async def remove_rend_dropper(self, ctx, name):
+    async def remove_rend_dropper(self, ctx, name_or_time):
         global rend_drops
-        if await remove_summoner_buffer_dropper(ctx, rend_drops, name):
+        if await remove_dropper(ctx, rend_drops, name_or_time):
             await playback_message(ctx, 'Rend buff timer updated to:\n' + await calc_rend_msg())
 
     @commands.command(name='ony-drop-remove', aliases=['ony-drops-remove'], brief='Remove user dropping ony', help='Removes a ony confirmed dropper - example: --ony-drop-remove Thatguy')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
-    async def remove_ony_dropper(self, ctx, name):
+    async def remove_ony_dropper(self, ctx, name_or_time):
         global ony_drops
-        if await remove_summoner_buffer_dropper(ctx, ony_drops, name):
+        if await remove_dropper(ctx, ony_drops, name_or_time):
             await playback_message(ctx, 'Ony buff timer updated to:\n' + await calc_ony_msg())
 
     @commands.command(name='nef-drop-remove', aliases=['nef-drops-remove'], brief='Remove user dropping nef', help='Removes a nef confirmed dropper - example: --nef-drop-remove Thatguy')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
-    async def remove_nef_dropper(self, ctx, name):
+    async def remove_nef_dropper(self, ctx, name_or_time):
         global nef_drops
-        if await remove_summoner_buffer_dropper(ctx, nef_drops, name):
+        if await remove_dropper(ctx, nef_drops, name_or_time):
             await playback_message(ctx, 'Nef buff timer updated to:\n' + await calc_nef_msg())
 
     @commands.command(name='hakkar-drop-remove', aliases=['hakkar-drops-remove'], brief='Remove user dropping hakkar', help='Removes a hakkar confirmed dropper - example: --hakkar-drop-remove Thatguy')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
-    async def remove_hakkar_dropper(self, ctx, name):
+    async def remove_hakkar_dropper(self, ctx, name_or_time):
         global hakkar_drops
-        if await remove_summoner_buffer_dropper(ctx, hakkar_drops, name):
+        if await remove_dropper(ctx, hakkar_drops, name_or_time):
             await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
 
 
@@ -501,7 +501,7 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
     async def remove_hakkar_yi_summons(self, ctx, name):
         global hakkar_yi_summons
         if await has_rights_to_remove(hakkar_yi_summons, name, ctx.message.author):
-            if await remove_summoner_buffer_dropper(ctx, hakkar_yi_summons, name):
+            if await remove_summoner_buffer(ctx, hakkar_yi_summons, name):
                 await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
 
     @commands.command(name='bb-sums-remove', aliases=['bb-summs-remove'], brief='Remove user that was summoning to BB', help='Removes a BB summoner - example: --bb-sums-remove Thatguy')
@@ -509,7 +509,7 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
     async def remove_hakkar_bb_summons(self, ctx, name):
         global hakkar_bb_summons
         if await has_rights_to_remove(hakkar_bb_summons, name, ctx.message.author):
-            if await remove_summoner_buffer_dropper(ctx, hakkar_bb_summons, name):
+            if await remove_summoner_buffer(ctx, hakkar_bb_summons, name):
                 await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
 
     @commands.command(name='bvsf-sums-remove', aliases=['bvsf-summs-remove'], brief='Remove user that was summoning to BVSF', help='Removes a BVSF summoner - example: --bvsf-sums-remove Thatguy 5g w/port')
@@ -517,7 +517,7 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
     async def remove_bvsf_summons(self, ctx, name):
         global bvsf_summons
         if await has_rights_to_remove(bvsf_summons, name, ctx.message.author):
-            if await remove_summoner_buffer_dropper(ctx, bvsf_summons, name):
+            if await remove_summoner_buffer(ctx, bvsf_summons, name):
                 await playback_message(ctx, 'BVSF buff timer updated to:\n' + await calc_bvsf_msg())
 
     @commands.command(name='dmt-sums-remove', aliases=['dmt-summs-remove'], brief='Remove user that was summoning to DMT', help='Removes a DMT summoner - example: --dmt-sums-remove Thatguy')
@@ -525,7 +525,7 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
     async def remove_dmt_summoner(self, ctx, name):
         global dmt_summons
         if await has_rights_to_remove(dmt_summons, name, ctx.message.author):
-            if await remove_summoner_buffer_dropper(ctx, dmt_summons, name):
+            if await remove_summoner_buffer(ctx, dmt_summons, name):
                 await playback_message(ctx, 'DMT buff timer updated to:\n' + await calc_dmt_msg())
 
     @commands.command(name='dmf-sums-remove', aliases=['dmf-summs-remove'], brief='Remove user that was summoning to DMF', help='Removes a DMF summoner - example: --dmf-sums-remove Thatguy')
@@ -533,7 +533,7 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
     async def remove_dmf_summoner(self, ctx, name):
         global dmf_summons
         if await has_rights_to_remove(dmf_summons, name, ctx.message.author):
-            if await remove_summoner_buffer_dropper(ctx, dmf_summons, name):
+            if await remove_summoner_buffer(ctx, dmf_summons, name):
                 if len(dmf_location) > 0 or len(dmf_summons) > 0:
                     await playback_message(ctx, 'DMF buff timer updated to:\n' + await calc_dmf_msg())
                 else:
@@ -544,7 +544,7 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
     async def remove_naxx_summons(self, ctx, name):
         global naxx_summons
         if await has_rights_to_remove(naxx_summons, name, ctx.message.author):
-            if await remove_summoner_buffer_dropper(ctx, naxx_summons, name):
+            if await remove_summoner_buffer(ctx, naxx_summons, name):
                 if len(naxx_summons) > 0:
                     await playback_message(ctx, 'Naxx buff timer updated to:\n' + await calc_naxx_msg())
                 else:
@@ -555,7 +555,7 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
     async def remove_aq_summons(self, ctx, name):
         global aq_summons
         if await has_rights_to_remove(aq_summons, name, ctx.message.author):
-            if await remove_summoner_buffer_dropper(ctx, aq_summons, name):
+            if await remove_summoner_buffer(ctx, aq_summons, name):
                 if len(aq_summons) > 0:
                     await playback_message(ctx, 'AQ Gates buff timer updated to:\n' + await calc_aq_msg())
                 else:
@@ -566,7 +566,7 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
     async def remove_brm_summons(self, ctx, name):
         global brm_summons
         if await has_rights_to_remove(brm_summons, name, ctx.message.author):
-            if await remove_summoner_buffer_dropper(ctx, brm_summons, name):
+            if await remove_summoner_buffer(ctx, brm_summons, name):
                 if len(brm_summons) > 0:
                     await playback_message(ctx, 'BRM buff timer updated to:\n' + await calc_brm_msg())
                 else:
@@ -586,7 +586,7 @@ class DMTBuffCommands(commands.Cog, name = 'Adds the <name> of a DMT buff seller
     async def remove_dmt_buffs(self, ctx, name):
         global dmt_buffs
         if await has_rights_to_remove(dmt_buffs, name, ctx.message.author):
-            if await remove_summoner_buffer_dropper(ctx, dmt_buffs, name):
+            if await remove_summoner_buffer(ctx, dmt_buffs, name):
                 await playback_message(ctx, 'DMT buff timer updated to:\n' + await calc_dmt_msg())
 
 
@@ -860,15 +860,26 @@ async def add_summoner_buffer_no_post(summoners_buffers, name, note, author_id='
     summoner_buffer = SummonerBuffer(clean_title_name, message, author_id)
     summoners_buffers.append(summoner_buffer)
 
-async def remove_summoner_buffer_dropper(ctx, summoners_buffers_droppers, name):
-    clean_title_name = (await remove_command_surrounding_special_characters(name)).title()
+async def remove_summoner_buffer(ctx, summoners_buffers_droppers, name):
+    clean_name = (await remove_command_surrounding_special_characters(name)).lower()
     for summon_buff_drop in summoners_buffers_droppers:
-        if summon_buff_drop.name == clean_title_name:
+        if summon_buff_drop.name.lower() == clean_name:
             summoners_buffers_droppers.remove(summon_buff_drop)
             await post_in_world_buffs_chat_channel()
             return True
 
-    await ctx.send('Name **{0}** not found - nothing to remove'.format(clean_title_name))
+    await ctx.send('Name **{0}** not found - nothing to remove'.format(name))
+    return False
+
+async def remove_dropper(ctx, droppers, name_or_time):
+    clean_name_or_time = (await remove_command_surrounding_special_characters(name_or_time)).lower()
+    for dropper in droppers:
+        if dropper.name.lower() == clean_name_or_time or dropper.time.lower() == clean_name_or_time:
+            droppers.remove(dropper)
+            await post_in_world_buffs_chat_channel()
+            return True
+
+    await ctx.send('Name **{0}** not found - nothing to remove'.format(name_or_time))
     return False
 
 async def has_rights_to_remove(summoners_buffers, name, author):
