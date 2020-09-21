@@ -394,6 +394,7 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
         global rend_drops
         #if await validate_time_format(time):
         await add_dropper(rend_drops, name, time)
+        rend_drops.sort(key=sort_by_time)
         await playback_message(ctx, 'Rend buff timer updated to:\n' + await calc_rend_msg())
         #else:
         #    await playback_invalid_time_message(ctx)
@@ -404,6 +405,7 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
         global ony_drops
         #if await validate_time_format(time):
         await add_dropper(ony_drops, name, time)
+        ony_drops.sort(key=sort_by_time)
         await playback_message(ctx, 'Ony buff timer updated to:\n' + await calc_ony_msg())
         #else:
         #    await playback_invalid_time_message(ctx)
@@ -414,6 +416,7 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
         global nef_drops
         #if await validate_time_format(time):
         await add_dropper(nef_drops, name, time)
+        nef_drops.sort(key=sort_by_time)
         await playback_message(ctx, 'Nef buff timer updated to:\n' + await calc_nef_msg())
         #else:
         #    await playback_invalid_time_message(ctx)
@@ -976,8 +979,19 @@ async def post_in_world_buffs_chat_channel():
     else:
         await channel.send(await get_buff_times())
 
-def sort_by_time(dropper): 
-    return datetime.strptime(dropper.time, '%I:%M%p')  
+def sort_by_time(dropper):
+    utc = timezone('UTC')
+    now = utc.localize(datetime.utcnow())
+    local_time = now.astimezone(timezone('US/Eastern'))
+    if re.search('^[0-1]?[0-9]:[0-5][0-9][a,p]m$', dropper.time):
+        date_time = datetime.strptime(dropper.time, '%I:%M%p')
+        new_time = local_time.replace(hour=date_time.hour, minute=date_time.minute)
+        minutes = (local_time - new_time).total_seconds() / 60
+        if minutes > 60:
+            new_time += timedelta(days=1)
+        return new_time
+    else:
+        return local_time
 
 
 # Sample Message to process
