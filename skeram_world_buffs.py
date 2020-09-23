@@ -278,7 +278,7 @@ async def check_for_message_updates():
             embed.description = "Rend time in the past, unknown if it is open or was dropped (no matching dropper found)"
             embed.add_field(name="Prior time:", value=rend_time, inline=True)
             embed.add_field(name="Updated time: ", value="OPEN??", inline=True)
-            embed.add_field(name="----------", value="Next drop time may be around ~{0}".format(next_rend_time), inline=False)
+            embed.add_field(name="----------", value="If a drop was done, next drop time may be around ~{0}".format(next_rend_time), inline=False)
             rend_time = 'OPEN??'
         await wbc_channel.send(embed=embed)
         post_updates = True
@@ -313,7 +313,7 @@ async def check_for_message_updates():
             embed.description = "Ony time in the past, unknown if it is open or was dropped (no matching dropper found)"
             embed.add_field(name="Prior time:", value=ony_time, inline=True)
             embed.add_field(name="Updated time: ", value="OPEN??", inline=True)
-            embed.add_field(name="----------", value="Next drop time may be around ~{0}".format(next_ony_time), inline=False)
+            embed.add_field(name="----------", value="If a drop was done, next drop time may be around ~{0}".format(next_ony_time), inline=False)
             ony_time = 'OPEN??'
         await wbc_channel.send(embed=embed)
         post_updates = True
@@ -348,7 +348,7 @@ async def check_for_message_updates():
             embed.description = "Nef time in the past, unknown if it is open or was dropped (no matching dropper found)"
             embed.add_field(name="Prior time:", value=nef_time, inline=True)
             embed.add_field(name="Updated time: ", value="OPEN??", inline=True)
-            embed.add_field(name="----------", value="Next drop time may be around ~{0}".format(next_nef_time), inline=False)
+            embed.add_field(name="----------", value="If a drop was done, next drop time may be around ~{0}".format(next_nef_time), inline=False)
             nef_time = 'OPEN??'
         await wbc_channel.send(embed=embed)
         post_updates = True
