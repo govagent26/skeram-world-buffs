@@ -526,56 +526,56 @@ class SummonerAddCommands(commands.Cog, name='Adds the <name> of a summoner and 
     def generate_summoner_aliases(location):
         return ["{0}-sums-add".format(location), "{0}-summ".format(location), "{0}-summ-add".format(location), "{0}-summs".format(location), "{0}-summs-add".format(location), "{0}-sum".format(location), "{0}-sum-add".format(location)]
         
-    @commands.command(name='yi-sums', aliases=generate_summoner_aliases("yi"), brief='Add user that is summoning to YI', help='Adds a YI summoner with cost/message - example: --yi-sums-add Thatguy 5g w/port')
+    @commands.command(name='yi-sums', aliases=generate_summoner_aliases("yi"), help='Adds a YI summoner with cost/message - example: --yi-sums Thatguy 5g w/port')
     @commands.has_any_role(WORLD_BUFF_COORDINATOR_ROLE_ID, WORLD_BUFF_SELLER_ROLE_ID)
     async def add_hakkar_yi_summons(self, ctx, name, *note):
         global hakkar_yi_summons
         await add_summoner_buffer(hakkar_yi_summons, name, note, ctx.message.author.id)
         await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
 
-    @commands.command(name='bb-sums', aliases=generate_summoner_aliases("bb"), brief='Add user that is summoning to BB', help='Adds a BB summoner with cost/message - example: --bb-sums-add Thatguy 5g w/port')
+    @commands.command(name='bb-sums', aliases=generate_summoner_aliases("bb"), help='Adds a BB summoner with cost/message - example: --bb-sums Thatguy 5g w/port')
     @commands.has_any_role(WORLD_BUFF_COORDINATOR_ROLE_ID, WORLD_BUFF_SELLER_ROLE_ID)
     async def add_hakkar_bb_summons(self, ctx, name, *note):
         global hakkar_bb_summons
         await add_summoner_buffer(hakkar_bb_summons, name, note, ctx.message.author.id)
         await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
 
-    @commands.command(name='bvsf-sums', aliases=generate_summoner_aliases("bvsf"), brief='Add user that is summoning to BVSF', help='Adds a BVSF summoner with cost/message - example: --bvsf-sums-add Thatguy 5g w/port')
+    @commands.command(name='bvsf-sums', aliases=generate_summoner_aliases("bvsf"), help='Adds a BVSF summoner with cost/message - example: --bvsf-sums Thatguy 5g w/port')
     @commands.has_any_role(WORLD_BUFF_COORDINATOR_ROLE_ID, WORLD_BUFF_SELLER_ROLE_ID)
     async def add_bvsf_summons(self, ctx, name, *note):
         global bvsf_summons
         await add_summoner_buffer(bvsf_summons, name, note, ctx.message.author.id)
         await playback_message(ctx, 'BVSF buff timer updated to:\n' + await calc_bvsf_msg())
 
-    @commands.command(name='dmt-sums', aliases=generate_summoner_aliases("dmt"), brief='Add user that is summoning to DMT', help='Adds a DMT summoner with cost/message - example: --dmt-sums-add Thatguy 5g w/port')
+    @commands.command(name='dmt-sums', aliases=generate_summoner_aliases("dmt"), help='Adds a DMT summoner with cost/message - example: --dmt-sums Thatguy 5g w/port')
     @commands.has_any_role(WORLD_BUFF_COORDINATOR_ROLE_ID, WORLD_BUFF_SELLER_ROLE_ID)
     async def add_dmt_summoner(self, ctx, name, *note):
         global dmt_summons
         await add_summoner_buffer(dmt_summons, name, note, ctx.message.author.id)
         await playback_message(ctx, 'DMT buff timer updated to:\n' + await calc_dmt_msg())
 
-    @commands.command(name='dmf-sums', aliases=generate_summoner_aliases("dmf"), brief='Add user that is summoning to DMF', help='Adds a DMF summoner with cost/message - example: --dmf-sums-add Thatguy 5g w/port')
+    @commands.command(name='dmf-sums', aliases=generate_summoner_aliases("dmf"), help='Adds a DMF summoner with cost/message - example: --dmf-sums Thatguy 5g w/port')
     @commands.has_any_role(WORLD_BUFF_COORDINATOR_ROLE_ID, WORLD_BUFF_SELLER_ROLE_ID)
     async def add_dmf_summoner(self, ctx, name, *note):
         global dmf_summons
         await add_summoner_buffer(dmf_summons, name, note, ctx.message.author.id)
         await playback_message(ctx, 'DMF buff timer updated to:\n' + await calc_dmf_msg())
 
-    @commands.command(name='naxx-sums', aliases=generate_summoner_aliases("naxx")+["nax-sums"]+generate_summoner_aliases("nax"), brief='Add user that is summoning to Naxx', help='Adds a Naxx summoner with cost/message - example: --naxx-sums-add Thatguy 5g w/port')
+    @commands.command(name='naxx-sums', aliases=generate_summoner_aliases("naxx")+["nax-sums"]+generate_summoner_aliases("nax"), help='Adds a Naxx summoner with cost/message - example: --naxx-sums Thatguy 5g w/port')
     @commands.has_any_role(WORLD_BUFF_COORDINATOR_ROLE_ID, WORLD_BUFF_SELLER_ROLE_ID)
     async def add_naxx_summons(self, ctx, name, *note):
         global naxx_summons
         await add_summoner_buffer(naxx_summons, name, note, ctx.message.author.id)
         await playback_message(ctx, 'Naxx buff timer updated to:\n' + await calc_naxx_msg())
 
-    @commands.command(name='aq-sums', aliases=generate_summoner_aliases("aq"), brief='Add user that is summoning to AQ Gates', help='Adds a AQ Gates summoner with cost/message - example: --aq-sums-add Thatguy 5g w/port')
+    @commands.command(name='aq-sums', aliases=generate_summoner_aliases("aq"), help='Adds a AQ Gates summoner with cost/message - example: --aq-sums Thatguy 5g w/port')
     @commands.has_any_role(WORLD_BUFF_COORDINATOR_ROLE_ID, WORLD_BUFF_SELLER_ROLE_ID)
     async def add_aq_gates_summons(self, ctx, name, *note):
         global aq_summons
         await add_summoner_buffer(aq_summons, name, note, ctx.message.author.id)
         await playback_message(ctx, 'AQ Gates buff timer updated to:\n' + await calc_aq_msg())
 
-    @commands.command(name='brm-sums', aliases=generate_summoner_aliases("brm"), brief='Add user that is summoning to BRM', help='Adds a BRM summoner with cost/message - example: --brm-sums-add Thatguy 5g w/port')
+    @commands.command(name='brm-sums', aliases=generate_summoner_aliases("brm"), help='Adds a BRM summoner with cost/message - example: --brm-sums Thatguy 5g w/port')
     @commands.has_any_role(WORLD_BUFF_COORDINATOR_ROLE_ID, WORLD_BUFF_SELLER_ROLE_ID)
     async def add_brm_summons(self, ctx, name, *note):
         global brm_summons
