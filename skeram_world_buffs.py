@@ -447,7 +447,10 @@ class BVSFBuffCommands(commands.Cog, name = 'Sets the next <time> the BVSF flowe
 
 
 class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper and the planned <time>'):
-    @commands.command(name='rend-drop', aliases=['rend-drop-add', 'rend-drops', 'rend-drops-add'], brief='Add user that will drop rend along with drop time', help='Sets a rend confirmed dropper - example: --rend-drop Thatguy 2:54pm')
+    def generate_dropper_aliases(drop):
+        return ["{0}-drop-add".format(drop), "{0}-drops".format(drop), "{0}-drops-add".format(drop)]
+        
+    @commands.command(name='rend-drop', aliases=generate_dropper_aliases("rend"), help='Sets a rend confirmed dropper with time - example: --rend-drop Thatguy 2:54pm')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_rend_dropper(self, ctx, name, time):
         global rend_drops
@@ -458,7 +461,7 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
         #else:
         #    await playback_invalid_time_message(ctx)
 
-    @commands.command(name='ony-drop', aliases=['ony-drop-add', 'ony-drops', 'ony-drops-add'], brief='Add user that will drop ony along with drop time', help='Sets a ony confirmed dropper - example: --ony-drop Thatguy 2:54pm')
+    @commands.command(name='ony-drop', aliases=generate_dropper_aliases("ony"), help='Sets a ony confirmed dropper with time - example: --ony-drop Thatguy 2:54pm')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_ony_dropper(self, ctx, name, time):
         global ony_drops
@@ -469,7 +472,7 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
         #else:
         #    await playback_invalid_time_message(ctx)
 
-    @commands.command(name='nef-drop', aliases=['nef-drop-add', 'nef-drops', 'nef-drops-add'], brief='Add user that will drop nef along with drop time', help='Sets a nef confirmed dropper - example: --nef-drop Thatguy 2:54pm')
+    @commands.command(name='nef-drop', aliases=generate_dropper_aliases("nef"), help='Sets a nef confirmed dropper with time - example: --nef-drop Thatguy 2:54pm')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_nef_dropper(self, ctx, name, time):
         global nef_drops
@@ -480,7 +483,7 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
         #else:
         #    await playback_invalid_time_message(ctx)
 
-    @commands.command(name='hakkar-drop', aliases=['hakkar-drop-add', 'hakkar-drops', 'hakkar-drops-add'], brief='Add user that will drop hakkar along with drop time', help='Sets a hakkar confirmed dropper - example: --hakkar-drop Thatguy 2:54pm')
+    @commands.command(name='hakkar-drop', aliases=generate_dropper_aliases("hakkar"), help='Sets a hakkar confirmed dropper with time - example: --hakkar-drop Thatguy 2:54pm')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_hakkar_dropper(self, ctx, name, time):
         global hakkar_drops
