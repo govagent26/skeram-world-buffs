@@ -665,14 +665,14 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
 
 
 class DMTBuffCommands(commands.Cog, name = 'Adds the <name> of a DMT buff seller and the [note] which may contain cost or other info or Removes the <name> of the DMT buffer'):
-    @commands.command(name='dmt-buffs-add', aliases=['dmt-buffs'], brief='Add user that is offering DMT buffs', help='Adds a DMT buffer with cost/message - example: --dmt-buffs-add Thatguy 5g w/port')
+    @commands.command(name='dmt-buffs', aliases=['dmt-buffs-add', 'dmt-buff', 'dmt-buff-add'], help='Adds a DMT buffer with cost/message - example: --dmt-buffs Thatguy 5g w/port')
     @commands.has_any_role(WORLD_BUFF_COORDINATOR_ROLE_ID, WORLD_BUFF_SELLER_ROLE_ID)
     async def add_dmt_buffs(self, ctx, name, *note):
         global dmt_buffs
         await add_summoner_buffer(dmt_buffs, name, note, ctx.message.author.id)
         await playback_message(ctx, 'DMT buff timer updated to:\n' + await calc_dmt_msg())
 
-    @commands.command(name='dmt-buffs-remove', brief='Remove user that was offering DMT buffs', help='Removes a DMT buffer - example: --dmt-sums-remove Thatguy')
+    @commands.command(name='dmt-buffs-remove', help='Removes a DMT buffer - example: --dmt-buffs-remove Thatguy')
     @commands.has_any_role(WORLD_BUFF_COORDINATOR_ROLE_ID, WORLD_BUFF_SELLER_ROLE_ID)
     async def remove_dmt_buffs(self, ctx, name):
         global dmt_buffs
