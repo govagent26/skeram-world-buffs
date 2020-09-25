@@ -24,7 +24,7 @@ PRINT_TIME_FORMAT = '%-I:%M%p' if platform.system() != 'Windows' else '%#I:%M%p'
 TIME_UNKNOWN = '?:??'
 BVSF_CORRUPTED = '**CORRUPTED**'
 
-bot = commands.Bot(command_prefix='--', case_insensitive=True)
+bot = commands.Bot(command_prefix=['--', '—', '-'], case_insensitive=True)
 bot.remove_command('help')
 
 
@@ -73,9 +73,9 @@ async def help(ctx):
         commands = ''
         cog_obj = bot.get_cog(cog)
         for command in cog_obj.get_commands():
-            commands += '\n{0.command_prefix}{1.qualified_name} {1.signature}'.format(bot, command)
+            commands += '\n{0.command_prefix[0]}{1.qualified_name} {1.signature}'.format(bot, command)
         helptext += '{0}\n  {1.qualified_name}\n\n'.format(commands, cog_obj)
-    helptext += '\n\n{0.command_prefix}{1.qualified_name} {1.signature}\n  {1.description}\n\n'.format(bot, bot.get_command('help'))
+    helptext += '\n\n{0.command_prefix[0]}{1.qualified_name} {1.signature}\n  {1.description}\n\n'.format(bot, bot.get_command('help'))
     helptext += "```"
     await ctx.send(helptext)
 
