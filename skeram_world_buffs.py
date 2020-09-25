@@ -672,7 +672,7 @@ class DMTBuffCommands(commands.Cog, name = 'Adds the <name> of a DMT buff seller
         await add_summoner_buffer(dmt_buffs, name, note, ctx.message.author.id)
         await playback_message(ctx, 'DMT buff timer updated to:\n' + await calc_dmt_msg())
 
-    @commands.command(name='dmt-buffs-remove', help='Removes a DMT buffer - example: --dmt-buffs-remove Thatguy')
+    @commands.command(name='dmt-buffs-remove', aliases=['dmt-buff-remove'], help='Removes a DMT buffer - example: --dmt-buffs-remove Thatguy')
     @commands.has_any_role(WORLD_BUFF_COORDINATOR_ROLE_ID, WORLD_BUFF_SELLER_ROLE_ID)
     async def remove_dmt_buffs(self, ctx, name):
         global dmt_buffs
