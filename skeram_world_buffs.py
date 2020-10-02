@@ -389,7 +389,7 @@ class BuffAvailTimeCommands(commands.Cog, name='Specifies the <time> when the bu
         global rend_time
         global rend_drops
         await check_droppers_for_removal_on_drop(ctx, rend_drops, rend_time)
-        rend_time = await remove_command_surrounding_special_characters(time)
+        rend_time = await remove_command_surrounding_special_characters(time.lower())
         await post_in_world_buffs_chat_channel()
         await playback_message(ctx, 'Rend buff timer updated to:\n' + await calc_rend_msg())
 
@@ -399,7 +399,7 @@ class BuffAvailTimeCommands(commands.Cog, name='Specifies the <time> when the bu
         global ony_time
         global ony_drops
         await check_droppers_for_removal_on_drop(ctx, ony_drops, ony_time)
-        ony_time = await remove_command_surrounding_special_characters(time)
+        ony_time = await remove_command_surrounding_special_characters(time.lower())
         await post_in_world_buffs_chat_channel()
         await playback_message(ctx, 'Ony buff timer updated to:\n' + await calc_ony_msg())
 
@@ -409,7 +409,7 @@ class BuffAvailTimeCommands(commands.Cog, name='Specifies the <time> when the bu
         global nef_time
         global nef_drops
         await check_droppers_for_removal_on_drop(ctx, nef_drops, nef_time)
-        nef_time = await remove_command_surrounding_special_characters(time)
+        nef_time = await remove_command_surrounding_special_characters(time.lower())
         await post_in_world_buffs_chat_channel()
         await playback_message(ctx, 'Nef buff timer updated to:\n' + await calc_nef_msg())
 
@@ -420,7 +420,7 @@ class BVSFBuffCommands(commands.Cog, name = 'Sets the next <time> the BVSF flowe
     async def set_bvsf_time(self, ctx, time):
         global bvsf_time
         global bvsf_update_count
-        clean_time = await remove_command_surrounding_special_characters(time)
+        clean_time = await remove_command_surrounding_special_characters(time.lower())
         if await validate_time_format(clean_time):
             bvsf_time = clean_time
             bvsf_update_count = 0
@@ -455,7 +455,7 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
     async def set_rend_dropper(self, ctx, name, time):
         global rend_drops
         #if await validate_time_format(time):
-        await add_dropper(rend_drops, name, time)
+        await add_dropper(rend_drops, name, time.lower())
         rend_drops.sort(key=sort_by_time)
         await playback_message(ctx, 'Rend buff timer updated to:\n' + await calc_rend_msg())
         #else:
@@ -466,7 +466,7 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
     async def set_ony_dropper(self, ctx, name, time):
         global ony_drops
         #if await validate_time_format(time):
-        await add_dropper(ony_drops, name, time)
+        await add_dropper(ony_drops, name, time.lower())
         ony_drops.sort(key=sort_by_time)
         await playback_message(ctx, 'Ony buff timer updated to:\n' + await calc_ony_msg())
         #else:
@@ -477,7 +477,7 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
     async def set_nef_dropper(self, ctx, name, time):
         global nef_drops
         #if await validate_time_format(time):
-        await add_dropper(nef_drops, name, time)
+        await add_dropper(nef_drops, name, time.lower())
         nef_drops.sort(key=sort_by_time)
         await playback_message(ctx, 'Nef buff timer updated to:\n' + await calc_nef_msg())
         #else:
@@ -488,7 +488,7 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
     async def set_hakkar_dropper(self, ctx, name, time):
         global hakkar_drops
         if await validate_time_format(time):
-            await add_dropper_no_post(hakkar_drops, name, time)
+            await add_dropper_no_post(hakkar_drops, name, time.lower())
             hakkar_drops.sort(key=sort_by_time)
             await post_in_world_buffs_chat_channel()
             await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
@@ -1024,7 +1024,7 @@ async def calculate_next_time(time_str, minutes_to_add):
     return datetime.strftime(new_time, PRINT_TIME_FORMAT).lower()
 
 async def validate_time_format(time):
-    valid = re.search('^[0-1]?[0-9]:[0-5][0-9][a,p]m$', time)
+    valid = re.search('^[0-1]?[0-9]:[0-5][0-9][a,p]m$', time.lower())
     return valid
 
 async def playback_invalid_time_message(ctx):
