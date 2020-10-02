@@ -550,7 +550,7 @@ class SummonerAddCommands(commands.Cog, name='Adds the <name> of a summoner and 
         await add_summoner_buffer(bvsf_summons, name, note, ctx.message.author.id)
         await playback_message(ctx, 'BVSF buff timer updated to:\n' + await calc_bvsf_msg())
 
-    @commands.command(name='dmt-sums', aliases=generate_summoner_aliases("dmt"), help='Adds a DMT summoner with cost/message - example: --dmt-sums Thatguy 5g w/port')
+    @commands.command(name='dmt-sums', aliases=generate_summoner_aliases("dmt")+["dm-sums"]+generate_summoner_aliases("dm"), help='Adds a DMT summoner with cost/message - example: --dmt-sums Thatguy 5g w/port')
     @commands.has_any_role(WORLD_BUFF_COORDINATOR_ROLE_ID, WORLD_BUFF_SELLER_ROLE_ID)
     async def add_dmt_summoner(self, ctx, name, *note):
         global dmt_summons
@@ -611,7 +611,7 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
             if await remove_summoner_buffer(ctx, bvsf_summons, name):
                 await playback_message(ctx, 'BVSF buff timer updated to:\n' + await calc_bvsf_msg())
 
-    @commands.command(name='dmt-sums-remove', aliases=['dmt-summs-remove'], brief='Remove user that was summoning to DMT', help='Removes a DMT summoner - example: --dmt-sums-remove Thatguy')
+    @commands.command(name='dmt-sums-remove', aliases=['dmt-summs-remove', 'dm-sums-remove', 'dm-summs-remove'], brief='Remove user that was summoning to DMT', help='Removes a DMT summoner - example: --dmt-sums-remove Thatguy')
     @commands.has_any_role(WORLD_BUFF_COORDINATOR_ROLE_ID, WORLD_BUFF_SELLER_ROLE_ID)
     async def remove_dmt_summoner(self, ctx, name):
         global dmt_summons
@@ -665,14 +665,14 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
 
 
 class DMTBuffCommands(commands.Cog, name = 'Adds the <name> of a DMT buff seller and the [note] which may contain cost or other info or Removes the <name> of the DMT buffer'):
-    @commands.command(name='dmt-buffs', aliases=['dmt-buffs-add', 'dmt-buff', 'dmt-buff-add'], help='Adds a DMT buffer with cost/message - example: --dmt-buffs Thatguy 5g w/port')
+    @commands.command(name='dmt-buffs', aliases=['dmt-buffs-add', 'dmt-buff', 'dmt-buff-add', 'dm-buffs', 'dm-buffs-add', 'dm-buff', 'dm-buff-add'], help='Adds a DMT buffer with cost/message - example: --dmt-buffs Thatguy 5g w/port')
     @commands.has_any_role(WORLD_BUFF_COORDINATOR_ROLE_ID, WORLD_BUFF_SELLER_ROLE_ID)
     async def add_dmt_buffs(self, ctx, name, *note):
         global dmt_buffs
         await add_summoner_buffer(dmt_buffs, name, note, ctx.message.author.id)
         await playback_message(ctx, 'DMT buff timer updated to:\n' + await calc_dmt_msg())
 
-    @commands.command(name='dmt-buffs-remove', aliases=['dmt-buff-remove'], help='Removes a DMT buffer - example: --dmt-buffs-remove Thatguy')
+    @commands.command(name='dmt-buffs-remove', aliases=['dmt-buff-remove', 'dm-buffs-remove', 'dm-buff-remove'], help='Removes a DMT buffer - example: --dmt-buffs-remove Thatguy')
     @commands.has_any_role(WORLD_BUFF_COORDINATOR_ROLE_ID, WORLD_BUFF_SELLER_ROLE_ID)
     async def remove_dmt_buffs(self, ctx, name):
         global dmt_buffs
