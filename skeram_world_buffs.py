@@ -483,7 +483,7 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
         #else:
         #    await playback_invalid_time_message(ctx)
 
-    @commands.command(name='hakkar-drop', aliases=generate_dropper_aliases("hakkar"), help='Sets a hakkar confirmed dropper with time - example: --hakkar-drop Thatguy 2:54pm')
+    @commands.command(name='hakkar-drop', aliases=generate_dropper_aliases("hakkar")+["yi-drop"]+generate_dropper_aliases("yi"), help='Sets a hakkar confirmed dropper with time - example: --hakkar-drop Thatguy 2:54pm')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_hakkar_dropper(self, ctx, name, time):
         global hakkar_drops
@@ -518,7 +518,7 @@ class BuffDropRemoveCommands(commands.Cog, name='Removes a buff dropper with mat
         if await remove_dropper(ctx, nef_drops, name_or_time):
             await playback_message(ctx, 'Nef buff timer updated to:\n' + await calc_nef_msg())
 
-    @commands.command(name='hakkar-drop-remove', aliases=['hakkar-drops-remove'], brief='Remove user dropping hakkar', help='Removes a hakkar confirmed dropper - example: --hakkar-drop-remove Thatguy')
+    @commands.command(name='hakkar-drop-remove', aliases=['hakkar-drops-remove', 'yi-drop-remove', 'yi-drops-remove'], brief='Remove user dropping hakkar', help='Removes a hakkar confirmed dropper - example: --hakkar-drop-remove Thatguy')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def remove_hakkar_dropper(self, ctx, name_or_time):
         global hakkar_drops
