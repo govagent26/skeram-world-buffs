@@ -389,7 +389,7 @@ class BuffAvailTimeCommands(commands.Cog, name='Specifies the <time> when the bu
         global rend_time
         global rend_drops
         await check_droppers_for_removal_on_drop(ctx, rend_drops, rend_time)
-        rend_time = await remove_command_surrounding_special_characters(time.lower())
+        rend_time = await remove_command_surrounding_special_characters(time)
         await post_in_world_buffs_chat_channel()
         await playback_message(ctx, 'Rend buff timer updated to:\n' + await calc_rend_msg())
 
@@ -399,7 +399,7 @@ class BuffAvailTimeCommands(commands.Cog, name='Specifies the <time> when the bu
         global ony_time
         global ony_drops
         await check_droppers_for_removal_on_drop(ctx, ony_drops, ony_time)
-        ony_time = await remove_command_surrounding_special_characters(time.lower())
+        ony_time = await remove_command_surrounding_special_characters(time)
         await post_in_world_buffs_chat_channel()
         await playback_message(ctx, 'Ony buff timer updated to:\n' + await calc_ony_msg())
 
@@ -409,7 +409,7 @@ class BuffAvailTimeCommands(commands.Cog, name='Specifies the <time> when the bu
         global nef_time
         global nef_drops
         await check_droppers_for_removal_on_drop(ctx, nef_drops, nef_time)
-        nef_time = await remove_command_surrounding_special_characters(time.lower())
+        nef_time = await remove_command_surrounding_special_characters(time)
         await post_in_world_buffs_chat_channel()
         await playback_message(ctx, 'Nef buff timer updated to:\n' + await calc_nef_msg())
 
@@ -455,7 +455,7 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
     async def set_rend_dropper(self, ctx, name, time):
         global rend_drops
         #if await validate_time_format(time):
-        await add_dropper(rend_drops, name, time.lower())
+        await add_dropper(rend_drops, name, time)
         rend_drops.sort(key=sort_by_time)
         await playback_message(ctx, 'Rend buff timer updated to:\n' + await calc_rend_msg())
         #else:
@@ -466,7 +466,7 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
     async def set_ony_dropper(self, ctx, name, time):
         global ony_drops
         #if await validate_time_format(time):
-        await add_dropper(ony_drops, name, time.lower())
+        await add_dropper(ony_drops, name, time)
         ony_drops.sort(key=sort_by_time)
         await playback_message(ctx, 'Ony buff timer updated to:\n' + await calc_ony_msg())
         #else:
@@ -477,7 +477,7 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
     async def set_nef_dropper(self, ctx, name, time):
         global nef_drops
         #if await validate_time_format(time):
-        await add_dropper(nef_drops, name, time.lower())
+        await add_dropper(nef_drops, name, time)
         nef_drops.sort(key=sort_by_time)
         await playback_message(ctx, 'Nef buff timer updated to:\n' + await calc_nef_msg())
         #else:
