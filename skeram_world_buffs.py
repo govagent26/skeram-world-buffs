@@ -902,6 +902,8 @@ async def get_local_time():
 async def droppers_msg(droppers, next_drop_time):
     message = ''
     for drop in droppers:
+        if len(message) > 0:
+            message += ', '
         if drop.time == next_drop_time:
             message += ' (**' + drop.name + '**)'
         else:
