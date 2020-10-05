@@ -24,6 +24,8 @@ PRINT_TIME_FORMAT = '%-I:%M%p' if platform.system() != 'Windows' else '%#I:%M%p'
 TIME_UNKNOWN = '?:??'
 BVSF_CORRUPTED = '**CORRUPTED**'
 
+TIME_AFTER_DROP_TO_AUTO_REMOVE = 1
+
 bot = commands.Bot(command_prefix=['--', '—', '-'], case_insensitive=True)
 bot.remove_command('help')
 
@@ -259,7 +261,7 @@ async def check_for_message_updates():
         embed.add_field(name="Updated time: ", value=bvsf_time, inline=True)
         await wbc_channel.send(embed=embed)
         post_updates = True
-    if await calc_minutes_since_time(rend_time) > 2:
+    if await calc_minutes_since_time(rend_time) > TIME_AFTER_DROP_TO_AUTO_REMOVE:
         next_rend_time = await calculate_next_time(rend_time, 180+1)
         embed = discord.Embed(title="**:japanese_ogre: Rend Buff Auto-Update**", color=0xff0000)
         rend_dropper_removed = False
@@ -284,7 +286,7 @@ async def check_for_message_updates():
         post_updates = True
     elif await time_is_open(rend_time):
         for drop in rend_drops:
-            if await calc_minutes_since_time(drop.time) > 2:
+            if await calc_minutes_since_time(drop.time) > TIME_AFTER_DROP_TO_AUTO_REMOVE:
                 next_rend_time = await calculate_next_time(drop.time, 180+1)
                 embed = discord.Embed(title="**:japanese_ogre: Rend Buff Auto-Update**", description="Rend dropper time is in the past and rend is off CD, assuming a drop was done and updating...", color=0xff0000)
                 embed.add_field(name="Dropper removed", value="{0.time} - (**{0.name}**)".format(drop), inline=False)
@@ -294,7 +296,7 @@ async def check_for_message_updates():
                 rend_time = next_rend_time
                 rend_drops.remove(drop)
                 post_updates = True
-    if await calc_minutes_since_time(ony_time) > 2:
+    if await calc_minutes_since_time(ony_time) > TIME_AFTER_DROP_TO_AUTO_REMOVE:
         next_ony_time = await calculate_next_time(ony_time, 360+1)
         embed = discord.Embed(title="**:dragon: Ony Buff Auto-Update**", color=0xc7ffa8)
         ony_dropper_removed = False
@@ -319,7 +321,7 @@ async def check_for_message_updates():
         post_updates = True
     elif await time_is_open(ony_time):
         for drop in ony_drops:
-            if await calc_minutes_since_time(drop.time) > 2:
+            if await calc_minutes_since_time(drop.time) > TIME_AFTER_DROP_TO_AUTO_REMOVE:
                 next_ony_time = await calculate_next_time(drop.time, 360+1)
                 embed = discord.Embed(title="**:dragon: Ony Buff Auto-Update**", description="Ony dropper time is in the past and ony is off CD, assuming a drop was done and updating...", color=0xc7ffa8)
                 embed.add_field(name="Dropper removed", value="{0.time} - (**{0.name}**)".format(drop), inline=False)
@@ -329,7 +331,7 @@ async def check_for_message_updates():
                 ony_time = next_ony_time
                 ony_drops.remove(drop)
                 post_updates = True
-    if await calc_minutes_since_time(nef_time) > 2:
+    if await calc_minutes_since_time(nef_time) > TIME_AFTER_DROP_TO_AUTO_REMOVE:
         next_nef_time = await calculate_next_time(nef_time, 480+1)
         embed = discord.Embed(title="**:dragon_face: Nef Buff Auto-Update**", color=0x4f9c26)
         nef_dropper_removed = False
@@ -354,7 +356,7 @@ async def check_for_message_updates():
         post_updates = True
     elif await time_is_open(nef_time):
         for drop in nef_drops:
-            if await calc_minutes_since_time(drop.time) > 2:
+            if await calc_minutes_since_time(drop.time) > TIME_AFTER_DROP_TO_AUTO_REMOVE:
                 next_nef_time = await calculate_next_time(drop.time, 480+1)
                 embed = discord.Embed(title="**:dragon_face: Nef Buff Auto-Update**", description="Nef dropper time is in the past and nef is off CD, assuming a drop was done and updating...", color=0x4f9c26)
                 embed.add_field(name="Dropper removed", value="{0.time} - (**{0.name}**)".format(drop), inline=False)
@@ -365,7 +367,7 @@ async def check_for_message_updates():
                 nef_drops.remove(drop)
                 post_updates = True
     for drop in hakkar_drops:
-        if await calc_minutes_since_time(drop.time) > 2:
+        if await calc_minutes_since_time(drop.time) > TIME_AFTER_DROP_TO_AUTO_REMOVE:
             embed = discord.Embed(title="**:heartpulse: Hakkar Buff Auto-Update**", description="Hakkar dropper time is in the past, assuming a drop was done and removing dropper...", color=0xe86969)
             embed.add_field(name="Dropper removed", value="{0.time} - (**{0.name}**)".format(drop), inline=False)
             await wbc_channel.send(embed=embed)
