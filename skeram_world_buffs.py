@@ -458,7 +458,6 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
         global rend_drops
         #if await validate_time_format(time):
         await add_dropper(rend_drops, name, time)
-        rend_drops.sort(key=sort_by_time)
         await playback_message(ctx, 'Rend buff timer updated to:\n' + await calc_rend_msg())
         #else:
         #    await playback_invalid_time_message(ctx)
@@ -469,7 +468,6 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
         global ony_drops
         #if await validate_time_format(time):
         await add_dropper(ony_drops, name, time)
-        ony_drops.sort(key=sort_by_time)
         await playback_message(ctx, 'Ony buff timer updated to:\n' + await calc_ony_msg())
         #else:
         #    await playback_invalid_time_message(ctx)
@@ -480,7 +478,6 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
         global nef_drops
         #if await validate_time_format(time):
         await add_dropper(nef_drops, name, time)
-        nef_drops.sort(key=sort_by_time)
         await playback_message(ctx, 'Nef buff timer updated to:\n' + await calc_nef_msg())
         #else:
         #    await playback_invalid_time_message(ctx)
@@ -928,6 +925,7 @@ async def summoners_buffers_msg(summoners, message_ending = 'summons'):
 
 async def add_dropper(droppers, name, time):
     await add_dropper_no_post(droppers, name, time)
+    droppers.sort(key=sort_by_time)
     await post_in_world_buffs_chat_channel()
 
 async def add_dropper_no_post(droppers, name, time):
