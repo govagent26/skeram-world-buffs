@@ -486,8 +486,8 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_hakkar_dropper(self, ctx, name, time):
         global hakkar_drops
-        if await validate_time_format(time):
-            await add_dropper_no_post(hakkar_drops, name, time.lower())
+        if await validate_time_format(time) or await validate_time_format(name):
+            await add_dropper_no_post(hakkar_drops, name.lower(), time.lower())
             hakkar_drops.sort(key=sort_by_time)
             await post_in_world_buffs_chat_channel()
             await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
@@ -929,14 +929,21 @@ async def add_dropper(droppers, name, time):
     await post_in_world_buffs_chat_channel()
 
 async def add_dropper_no_post(droppers, name, time):
-    clean_title_name = (await remove_command_surrounding_special_characters(name)).title()
+    clean_name = await remove_command_surrounding_special_characters(name)
     clean_time = await remove_command_surrounding_special_characters(time)
+    actual_name = clean_name
+    actual_time = clean_time
+    # support for reverse order params (when provided time is valid)
+    if await validate_time_format(clean_name):
+        actual_name = clean_time
+        actual_time = clean_name
+    actual_title_name = actual_name.title()
     for drop in droppers:
-        if drop.name == clean_title_name:
-            drop.time = clean_time
+        if drop.name == actual_title_name:
+            drop.time = actual_time
             return
 
-    dropper = Dropper(clean_time, clean_title_name)
+    dropper = Dropper(actual_time, actual_title_name)
     droppers.append(dropper)
 
 async def add_summoner_buffer(summoners_buffers, name, note, author_id=''):
