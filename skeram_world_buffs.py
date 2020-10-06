@@ -429,7 +429,7 @@ class BVSFBuffCommands(commands.Cog, name = 'Sets the next <time> the BVSF flowe
             await post_in_world_buffs_chat_channel()
             await playback_message(ctx, 'BVSF buff timer updated to:\n' + await calc_bvsf_msg())
         else:
-            await playback_invalid_time_message(ctx)
+            await ctx.send('Invalid time provided, format must be HH:MM[am|pm] - example: {0.prefix}{0.command.name} 2:54pm'.format(ctx))
 
     @commands.command(name='bvsf-corrupted', aliases=['bvsf-corrupt'], brief='Sets the BVSF as corrupted', help='Sets the flower as corrupted - example: --bvsf-corrupted')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
@@ -456,31 +456,22 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_rend_dropper(self, ctx, name, time):
         global rend_drops
-        #if await validate_time_format(time):
         await add_dropper(rend_drops, name, time)
         await playback_message(ctx, 'Rend buff timer updated to:\n' + await calc_rend_msg())
-        #else:
-        #    await playback_invalid_time_message(ctx)
 
     @commands.command(name='ony-drop', aliases=generate_dropper_aliases("ony"), help='Sets a ony confirmed dropper with time - example: --ony-drop Thatguy 2:54pm')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_ony_dropper(self, ctx, name, time):
         global ony_drops
-        #if await validate_time_format(time):
         await add_dropper(ony_drops, name, time)
         await playback_message(ctx, 'Ony buff timer updated to:\n' + await calc_ony_msg())
-        #else:
-        #    await playback_invalid_time_message(ctx)
 
     @commands.command(name='nef-drop', aliases=generate_dropper_aliases("nef"), help='Sets a nef confirmed dropper with time - example: --nef-drop Thatguy 2:54pm')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_nef_dropper(self, ctx, name, time):
         global nef_drops
-        #if await validate_time_format(time):
         await add_dropper(nef_drops, name, time)
         await playback_message(ctx, 'Nef buff timer updated to:\n' + await calc_nef_msg())
-        #else:
-        #    await playback_invalid_time_message(ctx)
 
     @commands.command(name='hakkar-drop', aliases=generate_dropper_aliases("hakkar")+["yi-drop"]+generate_dropper_aliases("yi"), help='Sets a hakkar confirmed dropper with time - example: --hakkar-drop Thatguy 2:54pm')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
@@ -492,7 +483,7 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
             await post_in_world_buffs_chat_channel()
             await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
         else:
-            await playback_invalid_time_message(ctx)
+            await ctx.send('Invalid time provided, format must be HH:MM[am|pm] - example: {0.prefix}{0.command.name} Thatguy 2:54pm'.format(ctx))
 
 
 class BuffDropRemoveCommands(commands.Cog, name='Removes a buff dropper with matching <name or time>'):
@@ -1035,9 +1026,6 @@ async def calculate_next_time(time_str, minutes_to_add):
 async def validate_time_format(time):
     valid = re.search('^[0-1]?[0-9]:[0-5][0-9][a,p]m$', time.lower())
     return valid
-
-async def playback_invalid_time_message(ctx):
-    await ctx.send('Invalid time provided, format must be HH:MM[am|pm] - example: {0.prefix}{0.command.name} 2:54pm'.format(ctx))
 
 async def playback_message(ctx, message):
     if (playback_updates):
