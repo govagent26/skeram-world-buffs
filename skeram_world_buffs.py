@@ -391,7 +391,7 @@ class BuffAvailTimeCommands(commands.Cog, name='Specifies the <time> when the bu
         global rend_time
         global rend_drops
         await check_droppers_for_removal_on_drop(ctx, rend_drops, rend_time)
-        rend_time = await remove_command_surrounding_special_characters(time)
+        rend_time = await format_time(await remove_command_surrounding_special_characters(time))
         await post_in_world_buffs_chat_channel()
         await playback_message(ctx, 'Rend buff timer updated to:\n' + await calc_rend_msg())
 
@@ -401,7 +401,7 @@ class BuffAvailTimeCommands(commands.Cog, name='Specifies the <time> when the bu
         global ony_time
         global ony_drops
         await check_droppers_for_removal_on_drop(ctx, ony_drops, ony_time)
-        ony_time = await remove_command_surrounding_special_characters(time)
+        ony_time = await format_time(await remove_command_surrounding_special_characters(time))
         await post_in_world_buffs_chat_channel()
         await playback_message(ctx, 'Ony buff timer updated to:\n' + await calc_ony_msg())
 
@@ -411,7 +411,7 @@ class BuffAvailTimeCommands(commands.Cog, name='Specifies the <time> when the bu
         global nef_time
         global nef_drops
         await check_droppers_for_removal_on_drop(ctx, nef_drops, nef_time)
-        nef_time = await remove_command_surrounding_special_characters(time)
+        nef_time = await format_time(await remove_command_surrounding_special_characters(time))
         await post_in_world_buffs_chat_channel()
         await playback_message(ctx, 'Nef buff timer updated to:\n' + await calc_nef_msg())
 
@@ -422,7 +422,7 @@ class BVSFBuffCommands(commands.Cog, name = 'Sets the next <time> the BVSF flowe
     async def set_bvsf_time(self, ctx, time):
         global bvsf_time
         global bvsf_update_count
-        clean_time = await remove_command_surrounding_special_characters(time.lower())
+        clean_time = await format_time(await remove_command_surrounding_special_characters(time))
         if await validate_time_format(clean_time):
             bvsf_time = clean_time
             bvsf_update_count = 0
