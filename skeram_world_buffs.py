@@ -929,13 +929,20 @@ async def add_dropper_no_post(droppers, name, time):
         actual_name = clean_time
         actual_time = clean_name
     actual_title_name = actual_name.title()
+    actual_format_time = await format_time(actual_time)
     for drop in droppers:
         if drop.name == actual_title_name:
-            drop.time = actual_time
+            drop.time = actual_format_time
             return
 
-    dropper = Dropper(actual_time, actual_title_name)
+    dropper = Dropper(actual_format_time, actual_title_name)
     droppers.append(dropper)
+
+async def format_time(time):
+    if not await validate_time_format(time):
+        return time;
+    date_time = datetime.strptime(time, '%I:%M%p')
+    return datetime.strftime(date_time, PRINT_TIME_FORMAT).lower()
 
 async def add_summoner_buffer(summoners_buffers, name, note, author_id=''):
     await add_summoner_buffer_no_post(summoners_buffers, name, note, author_id)
