@@ -712,7 +712,7 @@ class DMTBuffCommands(commands.Cog, name = 'Adds the <name> of a DMT buff seller
         global dmt_buffs
         await add_summoner_buffer(ctx, dmt_buffs, name, note, ctx.message.author.id)
         await playback_message(ctx, 'DMT buff timer updated to:\n' + await calc_dmt_msg())
-        await post_update_in_wbc_channel(ctx, 'Seller has added/updated a DMT buffer', name)
+        await post_update_in_wbc_channel(ctx, 'Seller has added/updated a DMT buffer', name, note)
 
     @commands.command(name='dmt-buffs-remove', aliases=['dmt-buff-remove', 'dm-buffs-remove', 'dm-buff-remove'], help='Removes a DMT buffer - example: --dmt-buffs-remove Thatguy')
     @coordinator_or_seller(seller=True)
