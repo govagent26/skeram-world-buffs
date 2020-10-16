@@ -34,26 +34,38 @@ bot = commands.Bot(command_prefix=['--', '—', '-'], case_insensitive=True)
 bot.remove_command('help')
 
 
+class DropBuffs:
+    def __init__(self, t=TIME_UNKNOWN, d=[]):
+        self.time = t
+        self.drops = d
+    
+    def find_dropper(name_or_time):
+        clean_name_or_time = remove_command_surrounding_special_characters(name_or_time).lower()
+        for dropper in self.drops:
+            if dropper.name.lower() == clean_name_or_time or dropper.time.lower() == clean_name_or_time:
+                return dropper
+        return None
+
+    def remove_dropper(dropper):
+        self.drops.remove(dropper)
+
 class Dropper:
-    def __init__(self, t='?:??', n='NA', a=''):
+    def __init__(self, t=TIME_UNKNOWN, n='NA', a=''):
         self.time = t
         self.name = n
         self.author = a
 
 class SummonerBuffer:
-    def __init__(self, n='?:??', m='NA', a=''):
+    def __init__(self, n=TIME_UNKNOWN, m='NA', a=''):
         self.name = n
         self.msg = m
         self.author = a
 
 playback_updates = True
 server_maintenance = ''
-rend_time = TIME_UNKNOWN
-rend_drops = []
-ony_time = TIME_UNKNOWN
-ony_drops = []
-nef_time = TIME_UNKNOWN
-nef_drops = []
+rend = DropBuffs(d=[])
+ony = DropBuffs(d=[])
+nef = DropBuffs(d=[])
 hakkar_drops = []
 hakkar_yi_summons = []
 hakkar_bb_summons = []
@@ -150,18 +162,15 @@ async def clear_all_data(ctx):
         await ctx.send('**Data cleared...**\nPrevious Message:\n' + message.content)
     global server_maintenance
     server_maintenance = ''
-    global rend_time
-    global rend_drops
-    rend_time = TIME_UNKNOWN
-    rend_drops = []
-    global ony_time
-    global ony_drops
-    ony_time = TIME_UNKNOWN
-    ony_drops = []
-    global nef_time
-    global nef_drops
-    nef_time = TIME_UNKNOWN
-    nef_drops = []
+    global rend
+    rend.time = TIME_UNKNOWN
+    rend.drops = []
+    global ony
+    ony.time = TIME_UNKNOWN
+    ony.drops = []
+    global nef
+    nef.time = TIME_UNKNOWN
+    nef.drops = []
     global hakkar_drops
     global hakkar_yi_summons
     global hakkar_bb_summons
@@ -200,18 +209,15 @@ async def mockup_data(ctx):
         return
     global server_maintenance
     server_maintenance = 'SERVER IS UP'
-    global rend_time
-    global rend_drops
-    rend_time = '3:00pm'
-    await add_dropper_no_post(rend_drops, 'Renddropper', '3:00pm')
-    await add_dropper_no_post(rend_drops, 'Nextdropper', '6:00pm')
-    global ony_time
-    global ony_drops
-    ony_time = 'OPEN'
-    await add_dropper_no_post(ony_drops, 'Onydropper', '8:00pm')
-    global nef_time
-    global nef_drops
-    nef_time = '7:45pm'
+    global rend
+    rend.time = '3:00pm'
+    await add_dropper_no_post(rend.drops, 'Renddropper', '3:00pm')
+    await add_dropper_no_post(rend.drops, 'Nextdropper', '6:00pm')
+    global ony
+    ony.time = 'OPEN'
+    await add_dropper_no_post(ony.drops, 'Onydropper', '8:00pm')
+    global nef
+    nef.time = '7:45pm'
     global hakkar_drops
     global hakkar_yi_summons
     global hakkar_bb_summons
@@ -280,12 +286,9 @@ async def on_ready():
 
 @tasks.loop(minutes=1)
 async def check_for_message_updates():
-    global rend_time
-    global rend_drops
-    global ony_time
-    global ony_drops
-    global nef_time
-    global nef_drops
+    global rend
+    global ony
+    global nef
     global bvsf_time
     global bvsf_update_count
     global hakkar_drops
@@ -306,110 +309,110 @@ async def check_for_message_updates():
         embed.add_field(name="Updated time: ", value=bvsf_time, inline=True)
         await wbc_channel.send(embed=embed)
         post_updates = True
-    if await calc_minutes_since_time(rend_time) > TIME_AFTER_DROP_TO_AUTO_REMOVE:
-        next_rend_time = await calculate_next_time(rend_time, 180+1)
+    if await calc_minutes_since_time(rend.time) > TIME_AFTER_DROP_TO_AUTO_REMOVE:
+        next_rend_time = await calculate_next_time(rend.time, 180+1)
         embed = discord.Embed(title="**:japanese_ogre: Rend Buff Auto-Update**", color=0xff0000)
         rend_dropper_removed = False
-        for drop in rend_drops:
-            if drop.time == rend_time:
+        for drop in rend.drops:
+            if drop.time == rend.time:
                 #old time found, remove dropper and add to embed
                 embed.add_field(name="Dropper removed", value="{0.time} - (**{0.name}**)".format(drop), inline=False)
-                rend_drops.remove(drop)
+                rend.drops.remove(drop)
                 rend_dropper_removed = True
         if rend_dropper_removed:
             embed.description = "Rend time in the past, matching dropper found - assuming it was dropped..."
-            embed.add_field(name="Prior time:", value=rend_time, inline=True)
+            embed.add_field(name="Prior time:", value=rend.time, inline=True)
             embed.add_field(name="Updated time: ", value=next_rend_time, inline=True)
-            rend_time = next_rend_time
+            rend.time = next_rend_time
         else:
             embed.description = "Rend time in the past, unknown if it is open or was dropped (no matching dropper found)"
-            embed.add_field(name="Prior time:", value=rend_time, inline=True)
+            embed.add_field(name="Prior time:", value=rend.time, inline=True)
             embed.add_field(name="Updated time: ", value="OPEN??", inline=True)
             embed.add_field(name="----------", value="If a drop was done, next drop time may be around ~{0}".format(next_rend_time), inline=False)
-            rend_time = 'OPEN??'
+            rend.time = 'OPEN??'
         await wbc_channel.send(embed=embed)
         post_updates = True
-    elif await time_is_open(rend_time):
-        for drop in rend_drops:
+    elif await time_is_open(rend.time):
+        for drop in rend.drops:
             if await calc_minutes_since_time(drop.time) > TIME_AFTER_DROP_TO_AUTO_REMOVE:
                 next_rend_time = await calculate_next_time(drop.time, 180+1)
                 embed = discord.Embed(title="**:japanese_ogre: Rend Buff Auto-Update**", description="Rend dropper time is in the past and rend is off CD, assuming a drop was done and updating...", color=0xff0000)
                 embed.add_field(name="Dropper removed", value="{0.time} - (**{0.name}**)".format(drop), inline=False)
-                embed.add_field(name="Prior time:", value=rend_time, inline=True)
+                embed.add_field(name="Prior time:", value=rend.time, inline=True)
                 embed.add_field(name="Updated time: ", value=next_rend_time, inline=True)
                 await wbc_channel.send(embed=embed)
-                rend_time = next_rend_time
-                rend_drops.remove(drop)
+                rend.time = next_rend_time
+                rend.drops.remove(drop)
                 post_updates = True
-    if await calc_minutes_since_time(ony_time) > TIME_AFTER_DROP_TO_AUTO_REMOVE:
-        next_ony_time = await calculate_next_time(ony_time, 360+1)
+    if await calc_minutes_since_time(ony.time) > TIME_AFTER_DROP_TO_AUTO_REMOVE:
+        next_ony_time = await calculate_next_time(ony.time, 360+1)
         embed = discord.Embed(title="**:dragon: Ony Buff Auto-Update**", color=0xc7ffa8)
         ony_dropper_removed = False
-        for drop in ony_drops:
-            if drop.time == ony_time:
+        for drop in ony.drops:
+            if drop.time == ony.time:
                 #old time found, remove dropper and add to embed
                 embed.add_field(name="Dropper removed", value="{0.time} - (**{0.name}**)".format(drop), inline=False)
-                ony_drops.remove(drop)
+                ony.drops.remove(drop)
                 ony_dropper_removed = True
         if ony_dropper_removed:
             embed.description = "Ony time in the past, matching dropper found - assuming it was dropped..."
-            embed.add_field(name="Prior time:", value=ony_time, inline=True)
+            embed.add_field(name="Prior time:", value=ony.time, inline=True)
             embed.add_field(name="Updated time: ", value=next_ony_time, inline=True)
-            ony_time = next_ony_time
+            ony.time = next_ony_time
         else:
             embed.description = "Ony time in the past, unknown if it is open or was dropped (no matching dropper found)"
-            embed.add_field(name="Prior time:", value=ony_time, inline=True)
+            embed.add_field(name="Prior time:", value=ony.time, inline=True)
             embed.add_field(name="Updated time: ", value="OPEN??", inline=True)
             embed.add_field(name="----------", value="If a drop was done, next drop time may be around ~{0}".format(next_ony_time), inline=False)
-            ony_time = 'OPEN??'
+            ony.time = 'OPEN??'
         await wbc_channel.send(embed=embed)
         post_updates = True
-    elif await time_is_open(ony_time):
-        for drop in ony_drops:
+    elif await time_is_open(ony.time):
+        for drop in ony.drops:
             if await calc_minutes_since_time(drop.time) > TIME_AFTER_DROP_TO_AUTO_REMOVE:
                 next_ony_time = await calculate_next_time(drop.time, 360+1)
                 embed = discord.Embed(title="**:dragon: Ony Buff Auto-Update**", description="Ony dropper time is in the past and ony is off CD, assuming a drop was done and updating...", color=0xc7ffa8)
                 embed.add_field(name="Dropper removed", value="{0.time} - (**{0.name}**)".format(drop), inline=False)
-                embed.add_field(name="Prior time:", value=ony_time, inline=True)
+                embed.add_field(name="Prior time:", value=ony.time, inline=True)
                 embed.add_field(name="Updated time: ", value=next_ony_time, inline=True)
                 await wbc_channel.send(embed=embed)
-                ony_time = next_ony_time
-                ony_drops.remove(drop)
+                ony.time = next_ony_time
+                ony.drops.remove(drop)
                 post_updates = True
-    if await calc_minutes_since_time(nef_time) > TIME_AFTER_DROP_TO_AUTO_REMOVE:
-        next_nef_time = await calculate_next_time(nef_time, 480+1)
+    if await calc_minutes_since_time(nef.time) > TIME_AFTER_DROP_TO_AUTO_REMOVE:
+        next_nef_time = await calculate_next_time(nef.time, 480+1)
         embed = discord.Embed(title="**:dragon_face: Nef Buff Auto-Update**", color=0x4f9c26)
         nef_dropper_removed = False
-        for drop in nef_drops:
-            if drop.time == nef_time:
+        for drop in nef.drops:
+            if drop.time == nef.time:
                 #old time found, remove dropper and add to embed
                 embed.add_field(name="Dropper removed", value="{0.time} - (**{0.name}**)".format(drop), inline=False)
-                nef_drops.remove(drop)
+                nef.drops.remove(drop)
                 nef_dropper_removed = True
         if nef_dropper_removed:
             embed.description = "Nef time in the past, matching dropper found - assuming it was dropped..."
-            embed.add_field(name="Prior time:", value=nef_time, inline=True)
+            embed.add_field(name="Prior time:", value=nef.time, inline=True)
             embed.add_field(name="Updated time: ", value=next_nef_time, inline=True)
-            nef_time = next_nef_time
+            nef.time = next_nef_time
         else:
             embed.description = "Nef time in the past, unknown if it is open or was dropped (no matching dropper found)"
-            embed.add_field(name="Prior time:", value=nef_time, inline=True)
+            embed.add_field(name="Prior time:", value=nef.time, inline=True)
             embed.add_field(name="Updated time: ", value="OPEN??", inline=True)
             embed.add_field(name="----------", value="If a drop was done, next drop time may be around ~{0}".format(next_nef_time), inline=False)
-            nef_time = 'OPEN??'
+            nef.time = 'OPEN??'
         await wbc_channel.send(embed=embed)
         post_updates = True
-    elif await time_is_open(nef_time):
-        for drop in nef_drops:
+    elif await time_is_open(nef.time):
+        for drop in nef.drops:
             if await calc_minutes_since_time(drop.time) > TIME_AFTER_DROP_TO_AUTO_REMOVE:
                 next_nef_time = await calculate_next_time(drop.time, 480+1)
                 embed = discord.Embed(title="**:dragon_face: Nef Buff Auto-Update**", description="Nef dropper time is in the past and nef is off CD, assuming a drop was done and updating...", color=0x4f9c26)
                 embed.add_field(name="Dropper removed", value="{0.time} - (**{0.name}**)".format(drop), inline=False)
-                embed.add_field(name="Prior time:", value=nef_time, inline=True)
+                embed.add_field(name="Prior time:", value=nef.time, inline=True)
                 embed.add_field(name="Updated time: ", value=next_nef_time, inline=True)
                 await wbc_channel.send(embed=embed)
-                nef_time = next_nef_time
-                nef_drops.remove(drop)
+                nef.time = next_nef_time
+                nef.drops.remove(drop)
                 post_updates = True
     for drop in hakkar_drops:
         if await calc_minutes_since_time(drop.time) > TIME_AFTER_DROP_TO_AUTO_REMOVE:
@@ -433,30 +436,27 @@ class BuffAvailTimeCommands(commands.Cog, name='Specifies the <time> when the bu
     @commands.command(name='rend', brief='Set time for when rend is open/off CD', help='Sets the next available time rend buff is open - example: --rend 2:54pm')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_rend_time(self, ctx, time):
-        global rend_time
-        global rend_drops
-        await check_droppers_for_removal_on_drop(ctx, rend_drops, rend_time)
-        rend_time = await format_time(await remove_command_surrounding_special_characters(time))
+        global rend
+        await check_droppers_for_removal_on_drop(ctx, rend)
+        rend.time = await format_time(remove_command_surrounding_special_characters(time))
         await post_in_world_buffs_chat_channel()
         await playback_message(ctx, 'Rend buff timer updated to:\n' + await calc_rend_msg())
 
     @commands.command(name='ony', brief='Set time for when ony is open/off CD', help='Sets the next available time ony buff is open - example: --ony 2:54pm')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_ony_time(self, ctx, time):
-        global ony_time
-        global ony_drops
-        await check_droppers_for_removal_on_drop(ctx, ony_drops, ony_time)
-        ony_time = await format_time(await remove_command_surrounding_special_characters(time))
+        global ony
+        await check_droppers_for_removal_on_drop(ctx, ony)
+        ony.time = await format_time(remove_command_surrounding_special_characters(time))
         await post_in_world_buffs_chat_channel()
         await playback_message(ctx, 'Ony buff timer updated to:\n' + await calc_ony_msg())
 
     @commands.command(name='nef', brief='Set time for when nef is open/off CD', help='Sets the next available time nef buff is open - example: --nef 2:54pm')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_nef_time(self, ctx, time):
-        global nef_time
-        global nef_drops
-        await check_droppers_for_removal_on_drop(ctx, nef_drops, nef_time)
-        nef_time = await format_time(await remove_command_surrounding_special_characters(time))
+        global nef
+        await check_droppers_for_removal_on_drop(ctx, nef)
+        nef.time = await format_time(remove_command_surrounding_special_characters(time))
         await post_in_world_buffs_chat_channel()
         await playback_message(ctx, 'Nef buff timer updated to:\n' + await calc_nef_msg())
 
@@ -467,7 +467,7 @@ class BVSFBuffCommands(commands.Cog, name = 'Sets the next <time> the BVSF flowe
     async def set_bvsf_time(self, ctx, time):
         global bvsf_time
         global bvsf_update_count
-        clean_time = await format_time(await remove_command_surrounding_special_characters(time))
+        clean_time = await format_time(remove_command_surrounding_special_characters(time))
         if await validate_time_format(clean_time):
             bvsf_time = clean_time
             bvsf_update_count = 0
@@ -500,22 +500,22 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
     @commands.command(name='rend-drop', aliases=generate_dropper_aliases("rend"), help='Sets a rend confirmed dropper with time - example: --rend-drop Thatguy 2:54pm')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_rend_dropper(self, ctx, name, time):
-        global rend_drops
-        await add_dropper(rend_drops, name, time)
+        global rend
+        await add_dropper(rend.drops, name, time)
         await playback_message(ctx, 'Rend buff timer updated to:\n' + await calc_rend_msg())
 
     @commands.command(name='ony-drop', aliases=generate_dropper_aliases("ony"), help='Sets a ony confirmed dropper with time - example: --ony-drop Thatguy 2:54pm')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_ony_dropper(self, ctx, name, time):
-        global ony_drops
-        await add_dropper(ony_drops, name, time)
+        global ony
+        await add_dropper(ony.drops, name, time)
         await playback_message(ctx, 'Ony buff timer updated to:\n' + await calc_ony_msg())
 
     @commands.command(name='nef-drop', aliases=generate_dropper_aliases("nef"), help='Sets a nef confirmed dropper with time - example: --nef-drop Thatguy 2:54pm')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_nef_dropper(self, ctx, name, time):
-        global nef_drops
-        await add_dropper(nef_drops, name, time)
+        global nef
+        await add_dropper(nef.drops, name, time)
         await playback_message(ctx, 'Nef buff timer updated to:\n' + await calc_nef_msg())
 
     @commands.command(name='hakkar-drop', aliases=generate_dropper_aliases("hakkar")+["yi-drop"]+generate_dropper_aliases("yi"), help='Sets a hakkar confirmed dropper with time - example: --hakkar-drop Thatguy 2:54pm')
@@ -535,22 +535,22 @@ class BuffDropRemoveCommands(commands.Cog, name='Removes a buff dropper with mat
     @commands.command(name='rend-drop-remove', aliases=['rend-drops-remove'], brief='Remove user dropping rend', help='Removes a rend confirmed dropper - example: --rend-drop-remove Thatguy')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def remove_rend_dropper(self, ctx, name_or_time):
-        global rend_drops
-        if await remove_dropper(ctx, rend_drops, name_or_time):
+        global rend
+        if await remove_dropper(ctx, rend.drops, name_or_time):
             await playback_message(ctx, 'Rend buff timer updated to:\n' + await calc_rend_msg())
 
     @commands.command(name='ony-drop-remove', aliases=['ony-drops-remove'], brief='Remove user dropping ony', help='Removes a ony confirmed dropper - example: --ony-drop-remove Thatguy')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def remove_ony_dropper(self, ctx, name_or_time):
-        global ony_drops
-        if await remove_dropper(ctx, ony_drops, name_or_time):
+        global ony
+        if await remove_dropper(ctx, ony.drops, name_or_time):
             await playback_message(ctx, 'Ony buff timer updated to:\n' + await calc_ony_msg())
 
     @commands.command(name='nef-drop-remove', aliases=['nef-drops-remove'], brief='Remove user dropping nef', help='Removes a nef confirmed dropper - example: --nef-drop-remove Thatguy')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def remove_nef_dropper(self, ctx, name_or_time):
-        global nef_drops
-        if await remove_dropper(ctx, nef_drops, name_or_time):
+        global nef
+        if await remove_dropper(ctx, nef.drops, name_or_time):
             await playback_message(ctx, 'Nef buff timer updated to:\n' + await calc_nef_msg())
 
     @commands.command(name='hakkar-drop-remove', aliases=['hakkar-drops-remove', 'yi-drop-remove', 'yi-drops-remove'], brief='Remove user dropping hakkar', help='Removes a hakkar confirmed dropper - example: --hakkar-drop-remove Thatguy')
@@ -836,18 +836,18 @@ async def get_extra_message():
         return ''
 
 async def calc_rend_msg():
-    message = ':japanese_ogre:  Rend --- ' + rend_time
-    message += await droppers_msg(rend_drops, rend_time)
+    message = ':japanese_ogre:  Rend --- ' + rend.time
+    message += await droppers_msg(rend)
     return message
 
 async def calc_ony_msg():
-    message = ':dragon:  Ony --- ' + ony_time
-    message += await droppers_msg(ony_drops, ony_time)
+    message = ':dragon:  Ony --- ' + ony.time
+    message += await droppers_msg(ony)
     return message
 
 async def calc_nef_msg():
-    message = ':dragon_face:  Nef --- ' + nef_time
-    message += await droppers_msg(nef_drops, nef_time)
+    message = ':dragon_face:  Nef --- ' + nef.time
+    message += await droppers_msg(nef)
     return message
 
 async def calc_hakkar_msg():
@@ -960,12 +960,12 @@ async def get_local_time():
     local_time = now.astimezone(timezone('US/Eastern'))
     return local_time
 
-async def droppers_msg(droppers, next_drop_time):
+async def droppers_msg(drop_buffs):
     message = ''
-    for drop in droppers:
+    for drop in drop_buffs.drops:
         if len(message) > 0:
             message += ', '
-        if drop.time == next_drop_time:
+        if drop.time == drop_buffs.time:
             message += ' (**' + drop.name + '**)'
         else:
             message += ' (' + drop.time + ' - **' + drop.name + '**)'
@@ -991,8 +991,8 @@ async def add_dropper(droppers, name, time):
     await post_in_world_buffs_chat_channel()
 
 async def add_dropper_no_post(droppers, name, time):
-    clean_name = await remove_command_surrounding_special_characters(name)
-    clean_time = await remove_command_surrounding_special_characters(time)
+    clean_name = remove_command_surrounding_special_characters(name)
+    clean_time = remove_command_surrounding_special_characters(time)
     actual_name = clean_name
     actual_time = clean_time
     # support for reverse order params (when provided time is valid)
@@ -1020,7 +1020,7 @@ async def add_summoner_buffer(ctx, summoners_buffers, name, note, author_id=''):
         await post_in_world_buffs_chat_channel()
 
 async def add_summoner_buffer_no_post(summoners_buffers, name, note, author_id='', coordinator=True):
-    clean_title_name = (await remove_command_surrounding_special_characters(name)).title()
+    clean_title_name = (remove_command_surrounding_special_characters(name)).title()
     message = await construct_args_message(note)
     if len(message) > 30:
         message = message[:30]
@@ -1037,7 +1037,7 @@ async def add_summoner_buffer_no_post(summoners_buffers, name, note, author_id='
     return True
 
 async def remove_summoner_buffer(ctx, summoners_buffers_droppers, name):
-    clean_name = (await remove_command_surrounding_special_characters(name)).lower()
+    clean_name = (remove_command_surrounding_special_characters(name)).lower()
     for summon_buff_drop in summoners_buffers_droppers:
         if summon_buff_drop.name.lower() == clean_name:
             summoners_buffers_droppers.remove(summon_buff_drop)
@@ -1048,7 +1048,7 @@ async def remove_summoner_buffer(ctx, summoners_buffers_droppers, name):
     return False
 
 async def remove_dropper(ctx, droppers, name_or_time):
-    clean_name_or_time = (await remove_command_surrounding_special_characters(name_or_time)).lower()
+    clean_name_or_time = (remove_command_surrounding_special_characters(name_or_time)).lower()
     for dropper in droppers:
         if dropper.name.lower() == clean_name_or_time or dropper.time.lower() == clean_name_or_time:
             droppers.remove(dropper)
@@ -1064,7 +1064,7 @@ async def has_rights_to_remove(ctx, summoners_buffers, name):
         return True
     # check for seller rights
     has_rights = False
-    clean_name = (await remove_command_surrounding_special_characters(name)).lower()
+    clean_name = (remove_command_surrounding_special_characters(name)).lower()
     for summon_buff in summoners_buffers:
         if summon_buff.name == clean_name and (summon_buff.author == '' or summon_buff.author == ctx.message.author.id):
             has_rights = True
@@ -1084,16 +1084,16 @@ async def post_update_in_wbc_channel(ctx, embed_desc, name, note=''):
             embed.add_field(name="Note/Message", value=await construct_args_message(note), inline=True)
         await wbc_channel.send(embed=embed)
 
-async def check_droppers_for_removal_on_drop(ctx, drops, old_drop_time):
-    for drop in drops:
-        if drop.time == old_drop_time:
+async def check_droppers_for_removal_on_drop(ctx, drop_buffs):
+    for drop in drop_buffs.drops:
+        if drop.time == drop_buffs.time:
             #old time found, remove dropper and post message
             await ctx.send('Dropper found whose time matched old time, assuming a drop was done and removing dropper:\n  {0.time} (**{0.name}**)'.format(drop))
-            drops.remove(drop)
+            drop_buffs.drops.remove(drop)
             return True
     return False
 
-async def remove_command_surrounding_special_characters(text):
+def remove_command_surrounding_special_characters(text):
     if (text.startswith('<') and text.endswith('>')) or (text.startswith('[') and text.endswith(']')):
         return text[1:-1]
     else:
@@ -1105,7 +1105,7 @@ async def construct_args_message(args):
         if index > 0:
             message = message + ' '
         message += args[index]
-    message = await remove_command_surrounding_special_characters(message)
+    message = remove_command_surrounding_special_characters(message)
     return message
 
 async def calculate_next_time(time_str, minutes_to_add):
@@ -1175,40 +1175,37 @@ async def populate_data_from_message(message):
             global server_maintenance
             strings = line.split(':tools:')
             non_bold_strings = strings[1].split('**')
-            server_maintenance = await remove_command_surrounding_special_characters(non_bold_strings[1])
+            server_maintenance = remove_command_surrounding_special_characters(non_bold_strings[1])
             if await get_maintenance() != line + '\n\n':
                 populate_success = False
                 print('server_status')
         elif line.startswith(':japanese_ogre:  Rend --- '):
             #:japanese_ogre:  Rend --- 8:00am (8:05am - **Dajokerrrend**) (9:05am - **Norend**)
-            global rend_time
-            global rend_drops
+            global rend
             strings = line.split(':japanese_ogre:  Rend --- ')
             parts = strings[1].split('(')
-            rend_time = await remove_command_surrounding_special_characters(parts[0].strip())
-            await process_droppers(rend_drops, parts[1:], rend_time)
+            rend.time = remove_command_surrounding_special_characters(parts[0].strip())
+            await process_droppers(rend.drops, parts[1:], rend.time)
             if await calc_rend_msg() != line:
                 populate_success = False
                 print('rend')
         elif line.startswith(':dragon:  Ony --- '):
             #:dragon:  Ony --- 8:05am (**Dajokerrrend**)
-            global ony_time
-            global ony_drops
+            global ony
             strings = line.split(':dragon:  Ony --- ')
             parts = strings[1].split('(')
-            ony_time = await remove_command_surrounding_special_characters(parts[0].strip())
-            await process_droppers(ony_drops, parts[1:], ony_time)
+            ony.time = remove_command_surrounding_special_characters(parts[0].strip())
+            await process_droppers(ony.drops, parts[1:], ony.time)
             if await calc_ony_msg() != line:
                 populate_success = False
                 print('ony')
         elif line.startswith(':dragon_face:  Nef --- '):
             #:dragon_face:  Nef --- 9:09am (9:10am - **Dajokerrnef**)
-            global nef_time
-            global nef_drops
+            global nef
             strings = line.split(':dragon_face:  Nef --- ')
             parts = strings[1].split('(')
-            nef_time = await remove_command_surrounding_special_characters(parts[0].strip())
-            await process_droppers(nef_drops, parts[1:], nef_time)
+            nef.time = remove_command_surrounding_special_characters(parts[0].strip())
+            await process_droppers(nef.drops, parts[1:], nef.time)
             if await calc_nef_msg() != line:
                 populate_success = False
                 print('nef')
@@ -1304,7 +1301,7 @@ async def populate_data_from_message(message):
             #:warning:  ALLY ALL OVER
             global alliance
             strings = line.split(':warning:')
-            alliance = await remove_command_surrounding_special_characters(strings[1].strip())
+            alliance = remove_command_surrounding_special_characters(strings[1].strip())
             if await get_alliance() != line + '\n':
                 populate_success = False
                 print('ally')
@@ -1312,7 +1309,7 @@ async def populate_data_from_message(message):
             #:airplane: :heartpulse::wilted_rose::crown::bug: :mountain: Denmule selling 8g summons to all raid & buff locations. Whisper 'inv __' with destination (i.e. DMT, BVSF, YI, AQ, BWL, MC, Org, ZG)
             global extra_message
             if line != '':
-                extra_message = await remove_command_surrounding_special_characters(line)
+                extra_message = remove_command_surrounding_special_characters(line)
                 if await get_extra_message() != '\n' + line + '\n':
                     populate_success = False
                     print('extra_message')
