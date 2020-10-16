@@ -1066,7 +1066,7 @@ async def has_rights_to_remove(ctx, summoners_buffers, name):
     has_rights = False
     clean_name = (remove_command_surrounding_special_characters(name)).lower()
     for summon_buff in summoners_buffers:
-        if summon_buff.name == clean_name and (summon_buff.author == '' or summon_buff.author == ctx.message.author.id):
+        if summon_buff.name.lower() == clean_name and (summon_buff.author == '' or summon_buff.author == ctx.message.author.id):
             has_rights = True
             break
     if not has_rights:
