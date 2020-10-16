@@ -103,15 +103,25 @@ def is_coordinator(ctx):
     return False
 
 
-@bot.command(name="help", description="Prints this message of all commands - note when using commands, do not include < > [ ] ")
+@bot.command(name="help", description="Prints this message of all commands - note when using commands, do not include < > [ ] - additionally all commands can be invoked using '--' or '-' or '—'")
+@coordinator_or_seller(seller=True)
 async def help(ctx):
+    coordinator = is_coordinator(ctx)
     helptext = "```"
     for cog in bot.cogs:
         commands = ''
         cog_obj = bot.get_cog(cog)
+        cog_obj_name = str(cog_obj)
+        if not coordinator and not ('Summoner' in cog_obj_name or 'DMTBuff' in cog_obj_name):
+            continue
         for command in cog_obj.get_commands():
             commands += '\n{0.command_prefix[0]}{1.qualified_name} {1.signature}'.format(bot, command)
         helptext += '{0}\n  {1.qualified_name}\n\n'.format(commands, cog_obj)
+    if (coordinator):
+        # help message too long - need to send commands and then final help text separate
+        helptext += "```"
+        await ctx.send(helptext)
+        helptext = "```"
     helptext += '\n\n{0.command_prefix[0]}{1.qualified_name} {1.signature}\n  {1.description}\n\n'.format(bot, bot.get_command('help'))
     helptext += "```"
     await ctx.send(helptext)
@@ -1054,8 +1064,9 @@ async def has_rights_to_remove(ctx, summoners_buffers, name):
         return True
     # check for seller rights
     has_rights = False
+    clean_name = (await remove_command_surrounding_special_characters(name)).lower()
     for summon_buff in summoners_buffers:
-        if summon_buff.name == name.title() and (summon_buff.author == '' or summon_buff.author == ctx.message.author.id):
+        if summon_buff.name == clean_name and (summon_buff.author == '' or summon_buff.author == ctx.message.author.id):
             has_rights = True
             break
     if not has_rights:
