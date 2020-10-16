@@ -13,6 +13,7 @@ from pytz import timezone
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
+SKERAM_SERVER_ID = int(os.getenv('SKERAM_SERVER_ID'))
 WORLD_BUFF_CHANNEL_ID = int(os.getenv('WORLD_BUFF_CHANNEL_ID'))
 WBC_CHANNEL_ID = int(os.getenv('WBC_CHANNEL_ID'))
 WORLD_BUFF_COORDINATOR_ROLE_ID = int(os.getenv('WORLD_BUFF_COORDINATOR_ROLE_ID'))
@@ -23,6 +24,9 @@ PRINT_TIME_FORMAT = '%-I:%M%p' if platform.system() != 'Windows' else '%#I:%M%p'
 
 TIME_UNKNOWN = '?:??'
 BVSF_CORRUPTED = '**CORRUPTED**'
+
+WORLD_BUFF_COORDINATOR = 'WBC'
+WORLD_BUFF_SELLER = 'WBS'
 
 TIME_AFTER_DROP_TO_AUTO_REMOVE = 1
 
@@ -66,6 +70,37 @@ alliance = ''
 extra_message = ''
 
 bvsf_update_count = 0
+
+
+def coordinator_or_seller(coordinator=True, seller=False):
+    async def predicate(ctx):
+        user_roles = check_for_role(ctx)
+        return (coordinator and WORLD_BUFF_COORDINATOR in user_roles) or (seller and WORLD_BUFF_SELLER in user_roles)
+    return commands.check(predicate)
+
+def check_for_role(ctx):
+    user_roles = []
+    author = ''
+    if (ctx.message.guild != None):
+        # from server, get user info from message
+        author = ctx.message.author
+    else:
+        # DM, need to get server and get user info on server
+        skeram_server = bot.get_guild(SKERAM_SERVER_ID)
+        author = discord.utils.get(skeram_server.members, id=ctx.message.author.id)
+    # check for coordinator / seller roles
+    for role in author.roles:
+        if WORLD_BUFF_SELLER_ROLE_ID == role.id:
+            user_roles.append(WORLD_BUFF_SELLER)
+        if WORLD_BUFF_COORDINATOR_ROLE_ID == role.id:
+            user_roles.append(WORLD_BUFF_COORDINATOR)
+    return user_roles
+
+def is_coordinator(ctx):
+    user_roles = check_for_role(ctx)
+    if WORLD_BUFF_COORDINATOR in user_roles:
+        return True
+    return False
 
 
 @bot.command(name="help", description="Prints this message of all commands - note when using commands, do not include < > [ ] ")
@@ -378,7 +413,7 @@ async def check_for_message_updates():
 
 @bot.event
 async def on_message(message):
-    if message.channel.id != WBC_CHANNEL_ID and not ('--help' in message.content):
+    if message.channel.id != WBC_CHANNEL_ID and message.guild != None:
         # only read non-help messages from designated channel
         return
     await bot.process_commands(message)
@@ -520,100 +555,100 @@ class SummonerAddCommands(commands.Cog, name='Adds the <name> of a summoner and 
         return ["{0}-sums-add".format(location), "{0}-summ".format(location), "{0}-summ-add".format(location), "{0}-summs".format(location), "{0}-summs-add".format(location), "{0}-sum".format(location), "{0}-sum-add".format(location)]
         
     @commands.command(name='yi-sums', aliases=generate_summoner_aliases("yi"), help='Adds a YI summoner with cost/message - example: --yi-sums Thatguy 5g w/port')
-    @commands.has_any_role(WORLD_BUFF_COORDINATOR_ROLE_ID, WORLD_BUFF_SELLER_ROLE_ID)
+    @coordinator_or_seller(seller=True)
     async def add_hakkar_yi_summons(self, ctx, name, *note):
         global hakkar_yi_summons
-        await add_summoner_buffer(hakkar_yi_summons, name, note, ctx.message.author.id)
+        await add_summoner_buffer(ctx, hakkar_yi_summons, name, note, ctx.message.author.id)
         await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
 
     @commands.command(name='bb-sums', aliases=generate_summoner_aliases("bb"), help='Adds a BB summoner with cost/message - example: --bb-sums Thatguy 5g w/port')
-    @commands.has_any_role(WORLD_BUFF_COORDINATOR_ROLE_ID, WORLD_BUFF_SELLER_ROLE_ID)
+    @coordinator_or_seller(seller=True)
     async def add_hakkar_bb_summons(self, ctx, name, *note):
         global hakkar_bb_summons
-        await add_summoner_buffer(hakkar_bb_summons, name, note, ctx.message.author.id)
+        await add_summoner_buffer(ctx, hakkar_bb_summons, name, note, ctx.message.author.id)
         await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
 
     @commands.command(name='bvsf-sums', aliases=generate_summoner_aliases("bvsf"), help='Adds a BVSF summoner with cost/message - example: --bvsf-sums Thatguy 5g w/port')
-    @commands.has_any_role(WORLD_BUFF_COORDINATOR_ROLE_ID, WORLD_BUFF_SELLER_ROLE_ID)
+    @coordinator_or_seller(seller=True)
     async def add_bvsf_summons(self, ctx, name, *note):
         global bvsf_summons
-        await add_summoner_buffer(bvsf_summons, name, note, ctx.message.author.id)
+        await add_summoner_buffer(ctx, bvsf_summons, name, note, ctx.message.author.id)
         await playback_message(ctx, 'BVSF buff timer updated to:\n' + await calc_bvsf_msg())
 
     @commands.command(name='dmt-sums', aliases=generate_summoner_aliases("dmt")+["dm-sums"]+generate_summoner_aliases("dm"), help='Adds a DMT summoner with cost/message - example: --dmt-sums Thatguy 5g w/port')
-    @commands.has_any_role(WORLD_BUFF_COORDINATOR_ROLE_ID, WORLD_BUFF_SELLER_ROLE_ID)
+    @coordinator_or_seller(seller=True)
     async def add_dmt_summoner(self, ctx, name, *note):
         global dmt_summons
-        await add_summoner_buffer(dmt_summons, name, note, ctx.message.author.id)
+        await add_summoner_buffer(ctx, dmt_summons, name, note, ctx.message.author.id)
         await playback_message(ctx, 'DMT buff timer updated to:\n' + await calc_dmt_msg())
 
     @commands.command(name='dmf-sums', aliases=generate_summoner_aliases("dmf"), help='Adds a DMF summoner with cost/message - example: --dmf-sums Thatguy 5g w/port')
-    @commands.has_any_role(WORLD_BUFF_COORDINATOR_ROLE_ID, WORLD_BUFF_SELLER_ROLE_ID)
+    @coordinator_or_seller(seller=True)
     async def add_dmf_summoner(self, ctx, name, *note):
         global dmf_summons
-        await add_summoner_buffer(dmf_summons, name, note, ctx.message.author.id)
+        await add_summoner_buffer(ctx, dmf_summons, name, note, ctx.message.author.id)
         await playback_message(ctx, 'DMF buff timer updated to:\n' + await calc_dmf_msg())
 
     @commands.command(name='naxx-sums', aliases=generate_summoner_aliases("naxx")+["nax-sums"]+generate_summoner_aliases("nax"), help='Adds a Naxx summoner with cost/message - example: --naxx-sums Thatguy 5g w/port')
-    @commands.has_any_role(WORLD_BUFF_COORDINATOR_ROLE_ID, WORLD_BUFF_SELLER_ROLE_ID)
+    @coordinator_or_seller(seller=True)
     async def add_naxx_summons(self, ctx, name, *note):
         global naxx_summons
-        await add_summoner_buffer(naxx_summons, name, note, ctx.message.author.id)
+        await add_summoner_buffer(ctx, naxx_summons, name, note, ctx.message.author.id)
         await playback_message(ctx, 'Naxx buff timer updated to:\n' + await calc_naxx_msg())
 
     @commands.command(name='aq-sums', aliases=generate_summoner_aliases("aq"), help='Adds a AQ Gates summoner with cost/message - example: --aq-sums Thatguy 5g w/port')
-    @commands.has_any_role(WORLD_BUFF_COORDINATOR_ROLE_ID, WORLD_BUFF_SELLER_ROLE_ID)
+    @coordinator_or_seller(seller=True)
     async def add_aq_gates_summons(self, ctx, name, *note):
         global aq_summons
-        await add_summoner_buffer(aq_summons, name, note, ctx.message.author.id)
+        await add_summoner_buffer(ctx, aq_summons, name, note, ctx.message.author.id)
         await playback_message(ctx, 'AQ Gates buff timer updated to:\n' + await calc_aq_msg())
 
     @commands.command(name='brm-sums', aliases=generate_summoner_aliases("brm"), help='Adds a BRM summoner with cost/message - example: --brm-sums Thatguy 5g w/port')
-    @commands.has_any_role(WORLD_BUFF_COORDINATOR_ROLE_ID, WORLD_BUFF_SELLER_ROLE_ID)
+    @coordinator_or_seller(seller=True)
     async def add_brm_summons(self, ctx, name, *note):
         global brm_summons
-        await add_summoner_buffer(brm_summons, name, note, ctx.message.author.id)
+        await add_summoner_buffer(ctx, brm_summons, name, note, ctx.message.author.id)
         await playback_message(ctx, 'BRM buff timer updated to:\n' + await calc_brm_msg())
 
 
 class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summoner'):
     @commands.command(name='yi-sums-remove', aliases=['yi-summs-remove'], brief='Remove user that was summoning to YI', help='Removes a YI summoner - example: --yi-sums-remove Thatguy')
-    @commands.has_any_role(WORLD_BUFF_COORDINATOR_ROLE_ID, WORLD_BUFF_SELLER_ROLE_ID)
+    @coordinator_or_seller(seller=True)
     async def remove_hakkar_yi_summons(self, ctx, name):
         global hakkar_yi_summons
-        if await has_rights_to_remove(hakkar_yi_summons, name, ctx.message.author):
+        if await has_rights_to_remove(ctx, hakkar_yi_summons, name):
             if await remove_summoner_buffer(ctx, hakkar_yi_summons, name):
                 await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
 
     @commands.command(name='bb-sums-remove', aliases=['bb-summs-remove'], brief='Remove user that was summoning to BB', help='Removes a BB summoner - example: --bb-sums-remove Thatguy')
-    @commands.has_any_role(WORLD_BUFF_COORDINATOR_ROLE_ID, WORLD_BUFF_SELLER_ROLE_ID)
+    @coordinator_or_seller(seller=True)
     async def remove_hakkar_bb_summons(self, ctx, name):
         global hakkar_bb_summons
-        if await has_rights_to_remove(hakkar_bb_summons, name, ctx.message.author):
+        if await has_rights_to_remove(ctx, hakkar_bb_summons, name):
             if await remove_summoner_buffer(ctx, hakkar_bb_summons, name):
                 await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
 
     @commands.command(name='bvsf-sums-remove', aliases=['bvsf-summs-remove'], brief='Remove user that was summoning to BVSF', help='Removes a BVSF summoner - example: --bvsf-sums-remove Thatguy 5g w/port')
-    @commands.has_any_role(WORLD_BUFF_COORDINATOR_ROLE_ID, WORLD_BUFF_SELLER_ROLE_ID)
+    @coordinator_or_seller(seller=True)
     async def remove_bvsf_summons(self, ctx, name):
         global bvsf_summons
-        if await has_rights_to_remove(bvsf_summons, name, ctx.message.author):
+        if await has_rights_to_remove(ctx, bvsf_summons, name):
             if await remove_summoner_buffer(ctx, bvsf_summons, name):
                 await playback_message(ctx, 'BVSF buff timer updated to:\n' + await calc_bvsf_msg())
 
     @commands.command(name='dmt-sums-remove', aliases=['dmt-summs-remove', 'dm-sums-remove', 'dm-summs-remove'], brief='Remove user that was summoning to DMT', help='Removes a DMT summoner - example: --dmt-sums-remove Thatguy')
-    @commands.has_any_role(WORLD_BUFF_COORDINATOR_ROLE_ID, WORLD_BUFF_SELLER_ROLE_ID)
+    @coordinator_or_seller(seller=True)
     async def remove_dmt_summoner(self, ctx, name):
         global dmt_summons
-        if await has_rights_to_remove(dmt_summons, name, ctx.message.author):
+        if await has_rights_to_remove(ctx, dmt_summons, name):
             if await remove_summoner_buffer(ctx, dmt_summons, name):
                 await playback_message(ctx, 'DMT buff timer updated to:\n' + await calc_dmt_msg())
 
     @commands.command(name='dmf-sums-remove', aliases=['dmf-summs-remove'], brief='Remove user that was summoning to DMF', help='Removes a DMF summoner - example: --dmf-sums-remove Thatguy')
-    @commands.has_any_role(WORLD_BUFF_COORDINATOR_ROLE_ID, WORLD_BUFF_SELLER_ROLE_ID)
+    @coordinator_or_seller(seller=True)
     async def remove_dmf_summoner(self, ctx, name):
         global dmf_summons
-        if await has_rights_to_remove(dmf_summons, name, ctx.message.author):
+        if await has_rights_to_remove(ctx, dmf_summons, name):
             if await remove_summoner_buffer(ctx, dmf_summons, name):
                 if len(dmf_location) > 0 or len(dmf_summons) > 0:
                     await playback_message(ctx, 'DMF buff timer updated to:\n' + await calc_dmf_msg())
@@ -621,10 +656,10 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
                     await playback_message(ctx, 'DMF buff timer removed')
 
     @commands.command(name='naxx-sums-remove', aliases=['nax-sums-remove', 'nax-summs-remove', 'naxx-summs-remove'], brief='Remove user that was summoning to Naxx', help='Removes a Naxx summoner - example: !naxx-sums-remove Thatguy')
-    @commands.has_any_role(WORLD_BUFF_COORDINATOR_ROLE_ID, WORLD_BUFF_SELLER_ROLE_ID)
+    @coordinator_or_seller(seller=True)
     async def remove_naxx_summons(self, ctx, name):
         global naxx_summons
-        if await has_rights_to_remove(naxx_summons, name, ctx.message.author):
+        if await has_rights_to_remove(ctx, naxx_summons, name):
             if await remove_summoner_buffer(ctx, naxx_summons, name):
                 if len(naxx_summons) > 0:
                     await playback_message(ctx, 'Naxx buff timer updated to:\n' + await calc_naxx_msg())
@@ -632,10 +667,10 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
                     await playback_message(ctx, 'Naxx buff timer removed')
 
     @commands.command(name='aq-sums-remove', aliases=['aq-summs-remove'], brief='Remove user that was summoning to AQ Gates', help='Removes a AQ Gates summoner - example: --aq-sums-remove Thatguy')
-    @commands.has_any_role(WORLD_BUFF_COORDINATOR_ROLE_ID, WORLD_BUFF_SELLER_ROLE_ID)
+    @coordinator_or_seller(seller=True)
     async def remove_aq_summons(self, ctx, name):
         global aq_summons
-        if await has_rights_to_remove(aq_summons, name, ctx.message.author):
+        if await has_rights_to_remove(ctx, aq_summons, name):
             if await remove_summoner_buffer(ctx, aq_summons, name):
                 if len(aq_summons) > 0:
                     await playback_message(ctx, 'AQ Gates buff timer updated to:\n' + await calc_aq_msg())
@@ -643,10 +678,10 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
                     await playback_message(ctx, 'AQ Gates buff timer removed')
 
     @commands.command(name='brm-sums-remove', aliases=['brm-summs-remove'], brief='Remove user that was summoning to BRM', help='Removes a BRM summoner - example: --brm-sums-remove Thatguy')
-    @commands.has_any_role(WORLD_BUFF_COORDINATOR_ROLE_ID, WORLD_BUFF_SELLER_ROLE_ID)
+    @coordinator_or_seller(seller=True)
     async def remove_brm_summons(self, ctx, name):
         global brm_summons
-        if await has_rights_to_remove(brm_summons, name, ctx.message.author):
+        if await has_rights_to_remove(ctx, brm_summons, name):
             if await remove_summoner_buffer(ctx, brm_summons, name):
                 if len(brm_summons) > 0:
                     await playback_message(ctx, 'BRM buff timer updated to:\n' + await calc_brm_msg())
@@ -656,17 +691,17 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
 
 class DMTBuffCommands(commands.Cog, name = 'Adds the <name> of a DMT buff seller and the [note] which may contain cost or other info or Removes the <name> of the DMT buffer'):
     @commands.command(name='dmt-buffs', aliases=['dmt-buffs-add', 'dmt-buff', 'dmt-buff-add', 'dm-buffs', 'dm-buffs-add', 'dm-buff', 'dm-buff-add'], help='Adds a DMT buffer with cost/message - example: --dmt-buffs Thatguy 5g w/port')
-    @commands.has_any_role(WORLD_BUFF_COORDINATOR_ROLE_ID, WORLD_BUFF_SELLER_ROLE_ID)
+    @coordinator_or_seller(seller=True)
     async def add_dmt_buffs(self, ctx, name, *note):
         global dmt_buffs
-        await add_summoner_buffer(dmt_buffs, name, note, ctx.message.author.id)
+        await add_summoner_buffer(ctx, dmt_buffs, name, note, ctx.message.author.id)
         await playback_message(ctx, 'DMT buff timer updated to:\n' + await calc_dmt_msg())
 
     @commands.command(name='dmt-buffs-remove', aliases=['dmt-buff-remove', 'dm-buffs-remove', 'dm-buff-remove'], help='Removes a DMT buffer - example: --dmt-buffs-remove Thatguy')
-    @commands.has_any_role(WORLD_BUFF_COORDINATOR_ROLE_ID, WORLD_BUFF_SELLER_ROLE_ID)
+    @coordinator_or_seller(seller=True)
     async def remove_dmt_buffs(self, ctx, name):
         global dmt_buffs
-        if await has_rights_to_remove(dmt_buffs, name, ctx.message.author):
+        if await has_rights_to_remove(ctx, dmt_buffs, name):
             if await remove_summoner_buffer(ctx, dmt_buffs, name):
                 await playback_message(ctx, 'DMT buff timer updated to:\n' + await calc_dmt_msg())
 
@@ -708,6 +743,14 @@ class GriefingCommands(commands.Cog, name = 'Specifies the ally sighting / grief
             await playback_message(ctx, 'Alliance warning message updated to:\n' + await get_alliance())
         else:
             await playback_message(ctx, 'Alliance warning message removed')
+            
+    @commands.command(name='ally-remove', brief='Clears the ally message', help='Clears the ally section and hides it - example: --ally-remove')
+    @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
+    async def clear_alliance_message(self, ctx):
+        global alliance
+        alliance = ''
+        await post_in_world_buffs_chat_channel()
+        await playback_message(ctx, 'Alliance warning message removed')
 
 
 class ExtraMessageCommands(commands.Cog, name = 'Specifies an additional footer [message] - specifying no message will hide the message'):
@@ -944,22 +987,26 @@ async def format_time(time):
     date_time = datetime.strptime(time, '%I:%M%p')
     return datetime.strftime(date_time, PRINT_TIME_FORMAT).lower()
 
-async def add_summoner_buffer(summoners_buffers, name, note, author_id=''):
-    await add_summoner_buffer_no_post(summoners_buffers, name, note, author_id)
-    await post_in_world_buffs_chat_channel()
+async def add_summoner_buffer(ctx, summoners_buffers, name, note, author_id=''):
+    if await add_summoner_buffer_no_post(summoners_buffers, name, note, author_id, is_coordinator(ctx)):
+        await post_in_world_buffs_chat_channel()
 
-async def add_summoner_buffer_no_post(summoners_buffers, name, note, author_id=''):
+async def add_summoner_buffer_no_post(summoners_buffers, name, note, author_id='', coordinator=True):
     clean_title_name = (await remove_command_surrounding_special_characters(name)).title()
     message = await construct_args_message(note)
     if len(message) > 30:
         message = message[:30]
     for summon_buff in summoners_buffers:
         if summon_buff.name == clean_title_name:
-            summon_buff.msg = message
-            return
+            if coordinator or author_id == summon_buff.author or summon_buff.author == '':
+                summon_buff.msg = message
+                return True
+            raise commands.errors.MissingRole(WORLD_BUFF_COORDINATOR_ROLE_ID)
+            return False
 
     summoner_buffer = SummonerBuffer(clean_title_name, message, author_id)
     summoners_buffers.append(summoner_buffer)
+    return True
 
 async def remove_summoner_buffer(ctx, summoners_buffers_droppers, name):
     clean_name = (await remove_command_surrounding_special_characters(name)).lower()
@@ -983,17 +1030,16 @@ async def remove_dropper(ctx, droppers, name_or_time):
     await ctx.send('Name **{0}** not found - nothing to remove'.format(name_or_time))
     return False
 
-async def has_rights_to_remove(summoners_buffers, name, author):
+async def has_rights_to_remove(ctx, summoners_buffers, name):
+    # coordinators have all the power
+    if is_coordinator(ctx):
+        return True
+    # check for seller rights
     has_rights = False
-    for role in author.roles:
-        if role.id == WORLD_BUFF_COORDINATOR_ROLE_ID:
+    for summon_buff in summoners_buffers:
+        if summon_buff.name == name.title() and (summon_buff.author == '' or summon_buff.author == ctx.message.author.id):
             has_rights = True
             break
-        elif role.id == WORLD_BUFF_SELLER_ROLE_ID:
-            for summon_buff_drop in summoners_buffers:
-                if summon_buff_drop.name == name.title() and (summon_buff_drop.author == '' or summon_buff_drop.author == author.id):
-                    has_rights = True
-                    break
     if not has_rights:
         raise commands.errors.MissingRole(WORLD_BUFF_COORDINATOR_ROLE_ID)
         return False
