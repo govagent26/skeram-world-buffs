@@ -46,7 +46,7 @@ class DropBuffs:
                 return dropper
         return None
 
-    def remove_dropper(dropper):
+    def remove_drop(dropper):
         self.drops.remove(dropper)
 
 class Dropper:
@@ -1074,14 +1074,17 @@ async def has_rights_to_remove(ctx, summoners_buffers, name):
         return False
     return True
 
-async def post_update_in_wbc_channel(ctx, embed_desc, name, note=''):
+async def post_update_in_wbc_channel(ctx, embed_desc, name, note=None):
     if (ctx.message.guild == None):
         wbc_channel = bot.get_channel(WBC_CHANNEL_ID)
         embed = discord.Embed(title="**DM Update**", description=embed_desc, color=0xa6a6a6)
         embed.add_field(name="Author", value=ctx.message.author.mention, inline=False)
         embed.add_field(name="Character Name", value=name.title(), inline=True)
-        if note != '':
-            embed.add_field(name="Note/Message", value=await construct_args_message(note), inline=True)
+        if note != None:
+            note_str = await construct_args_message(note)
+            if note_str == '':
+                note_str = '*No message applied*'
+            embed.add_field(name="Note/Message", value=note_str, inline=True)
         await wbc_channel.send(embed=embed)
 
 async def check_droppers_for_removal_on_drop(ctx, drop_buffs):
