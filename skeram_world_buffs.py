@@ -630,7 +630,10 @@ class SummonerAddCommands(commands.Cog, name='Adds the <name> of a summoner and 
 
 
 class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summoner'):
-    @commands.command(name='yi-sums-remove', aliases=['yi-summs-remove'], brief='Remove user that was summoning to YI', help='Removes a YI summoner - example: --yi-sums-remove Thatguy')
+    def generate_summoner_remove_aliases(location):
+        return ["{0}-summ-remove".format(location), "{0}-summs-remove".format(location), "{0}-sum-remove".format(location)]
+        
+    @commands.command(name='yi-sums-remove', aliases=generate_summoner_remove_aliases("yi"), brief='Remove user that was summoning to YI', help='Removes a YI summoner - example: --yi-sums-remove Thatguy')
     @coordinator_or_seller(seller=True)
     async def remove_hakkar_yi_summons(self, ctx, name):
         global hakkar_yi_summons
@@ -639,7 +642,7 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
                 await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
                 await post_update_in_wbc_channel(ctx, 'Removal of a YI summoner', name)
 
-    @commands.command(name='bb-sums-remove', aliases=['bb-summs-remove'], brief='Remove user that was summoning to BB', help='Removes a BB summoner - example: --bb-sums-remove Thatguy')
+    @commands.command(name='bb-sums-remove', aliases=generate_summoner_remove_aliases("bb"), brief='Remove user that was summoning to BB', help='Removes a BB summoner - example: --bb-sums-remove Thatguy')
     @coordinator_or_seller(seller=True)
     async def remove_hakkar_bb_summons(self, ctx, name):
         global hakkar_bb_summons
@@ -648,7 +651,7 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
                 await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
                 await post_update_in_wbc_channel(ctx, 'Removal of a BB summoner', name)
 
-    @commands.command(name='bvsf-sums-remove', aliases=['bvsf-summs-remove'], brief='Remove user that was summoning to BVSF', help='Removes a BVSF summoner - example: --bvsf-sums-remove Thatguy 5g w/port')
+    @commands.command(name='bvsf-sums-remove', aliases=generate_summoner_remove_aliases("bvsf"), brief='Remove user that was summoning to BVSF', help='Removes a BVSF summoner - example: --bvsf-sums-remove Thatguy 5g w/port')
     @coordinator_or_seller(seller=True)
     async def remove_bvsf_summons(self, ctx, name):
         global bvsf_summons
@@ -657,7 +660,7 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
                 await playback_message(ctx, 'BVSF buff timer updated to:\n' + await calc_bvsf_msg())
                 await post_update_in_wbc_channel(ctx, 'Removal of a BVSF summoner', name)
 
-    @commands.command(name='dmt-sums-remove', aliases=['dmt-summs-remove', 'dm-sums-remove', 'dm-summs-remove'], brief='Remove user that was summoning to DMT', help='Removes a DMT summoner - example: --dmt-sums-remove Thatguy')
+    @commands.command(name='dmt-sums-remove', aliases=generate_summoner_remove_aliases("dmt")+["dm-sums-remove"]+generate_summoner_remove_aliases("dm"), brief='Remove user that was summoning to DMT', help='Removes a DMT summoner - example: --dmt-sums-remove Thatguy')
     @coordinator_or_seller(seller=True)
     async def remove_dmt_summoner(self, ctx, name):
         global dmt_summons
@@ -666,7 +669,7 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
                 await playback_message(ctx, 'DMT buff timer updated to:\n' + await calc_dmt_msg())
                 await post_update_in_wbc_channel(ctx, 'Removal of a DMT summoner', name)
 
-    @commands.command(name='dmf-sums-remove', aliases=['dmf-summs-remove'], brief='Remove user that was summoning to DMF', help='Removes a DMF summoner - example: --dmf-sums-remove Thatguy')
+    @commands.command(name='dmf-sums-remove', aliases=generate_summoner_remove_aliases("dmf"), brief='Remove user that was summoning to DMF', help='Removes a DMF summoner - example: --dmf-sums-remove Thatguy')
     @coordinator_or_seller(seller=True)
     async def remove_dmf_summoner(self, ctx, name):
         global dmf_summons
@@ -678,7 +681,7 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
                     await playback_message(ctx, 'DMF buff timer removed')
                 await post_update_in_wbc_channel(ctx, 'Removal of a DMF summoner', name)
 
-    @commands.command(name='naxx-sums-remove', aliases=['nax-sums-remove', 'nax-summs-remove', 'naxx-summs-remove'], brief='Remove user that was summoning to Naxx', help='Removes a Naxx summoner - example: !naxx-sums-remove Thatguy')
+    @commands.command(name='naxx-sums-remove', aliases=generate_summoner_remove_aliases("naxx")+["nax-sums-remove"]+generate_summoner_remove_aliases("nax"), brief='Remove user that was summoning to Naxx', help='Removes a Naxx summoner - example: !naxx-sums-remove Thatguy')
     @coordinator_or_seller(seller=True)
     async def remove_naxx_summons(self, ctx, name):
         global naxx_summons
@@ -690,7 +693,7 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
                     await playback_message(ctx, 'Naxx buff timer removed')
                 await post_update_in_wbc_channel(ctx, 'Removal of a Naxx summoner', name)
 
-    @commands.command(name='aq-sums-remove', aliases=['aq-summs-remove'], brief='Remove user that was summoning to AQ Gates', help='Removes a AQ Gates summoner - example: --aq-sums-remove Thatguy')
+    @commands.command(name='aq-sums-remove', aliases=generate_summoner_remove_aliases("aq"), brief='Remove user that was summoning to AQ Gates', help='Removes a AQ Gates summoner - example: --aq-sums-remove Thatguy')
     @coordinator_or_seller(seller=True)
     async def remove_aq_summons(self, ctx, name):
         global aq_summons
@@ -702,7 +705,7 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
                     await playback_message(ctx, 'AQ Gates buff timer removed')
                 await post_update_in_wbc_channel(ctx, 'Removal of an AQ summoner', name)
 
-    @commands.command(name='brm-sums-remove', aliases=['brm-summs-remove'], brief='Remove user that was summoning to BRM', help='Removes a BRM summoner - example: --brm-sums-remove Thatguy')
+    @commands.command(name='brm-sums-remove', aliases=generate_summoner_remove_aliases("brm"), brief='Remove user that was summoning to BRM', help='Removes a BRM summoner - example: --brm-sums-remove Thatguy')
     @coordinator_or_seller(seller=True)
     async def remove_brm_summons(self, ctx, name):
         global brm_summons
