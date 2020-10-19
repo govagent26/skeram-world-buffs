@@ -1162,6 +1162,13 @@ async def playback_message(ctx, message):
         await ctx.send(message)
 
 async def post_in_world_buffs_chat_channel():
+    try:
+        await update_world_buffs_chat_channel()
+    except:
+        # just try to update again...
+        await update_world_buffs_chat_channel()
+
+async def update_world_buffs_chat_channel():
     channel = bot.get_channel(WORLD_BUFF_CHANNEL_ID)
     messages = await channel.history(limit = 1).flatten()
     if len(messages) > 0 and messages[0].author == bot.user:
