@@ -730,7 +730,7 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
                     await playback_message(ctx, 'BRM buff timer removed')
                 await post_update_in_wbc_channel(ctx, 'Removal of a BRM summoner', name)
 
-    @commands.command(name='wicker-sums-remove', aliases=generate_summoner_remove_aliases("wicker"), brief='Remove user that was summoning to Wickerman', help='Removes a Wickerman summoner - example: --wicker-sums-remove Thatguy')
+    @commands.command(name='wicker-sums-remove', aliases=generate_summoner_remove_aliases("wicker")+["wickerman-sums-remove"]+generate_summoner_remove_aliases("wickerman"), brief='Remove user that was summoning to Wickerman', help='Removes a Wickerman summoner - example: --wicker-sums-remove Thatguy')
     @coordinator_or_seller(seller=True)
     async def remove_wicker_summons(self, ctx, name):
         global wickerman_summons
