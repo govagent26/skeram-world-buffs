@@ -78,6 +78,7 @@ aq_summons = []
 brm_summons = []
 dmf_location = ''
 dmf_summons = []
+wickerman_summons = []
 alliance = ''
 extra_message = ''
 
@@ -195,6 +196,8 @@ async def clear_all_data(ctx):
     dmf_location = ''
     global dmf_summons
     dmf_summons = []
+    global wickerman_summons
+    wickerman_summons = []
     global alliance
     alliance = ''
     global extra_message
@@ -245,6 +248,8 @@ async def mockup_data(ctx):
     dmf_location = 'Mulgore'
     global dmf_summons
     await add_summoner_buffer_no_post(dmf_summons, 'dmfsums', ['10g'])
+    global wickerman_summons
+    await add_summoner_buffer_no_post(wickerman_summons, 'wickersums', ['9g'])
     global alliance
     alliance = 'ALLY everywhere - dont die'
     global extra_message
@@ -628,6 +633,14 @@ class SummonerAddCommands(commands.Cog, name='Adds the <name> of a summoner and 
         await playback_message(ctx, 'BRM buff timer updated to:\n' + await calc_brm_msg())
         await post_update_in_wbc_channel(ctx, 'Addition/update to a BRM summoner', name, note)
 
+    @commands.command(name='wicker-sums', aliases=generate_summoner_aliases("wicker")+["wickerman-sums"]+generate_summoner_aliases("wickerman"), help='Adds a wickerman (trisifal glades) summoner with cost/message - example: --wicker-sums Thatguy 5g w/port')
+    @coordinator_or_seller(seller=True)
+    async def add_wicker_summons(self, ctx, name, *note):
+        global wickerman_summons
+        await add_summoner_buffer(ctx, wickerman_summons, name, note, ctx.message.author.id)
+        await playback_message(ctx, 'Wickerman buff timer updated to:\n' + await calc_wicker_msg())
+        await post_update_in_wbc_channel(ctx, 'Addition/update to a Wickerman summoner', name, note)
+
 
 class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summoner'):
     def generate_summoner_remove_aliases(location):
@@ -716,6 +729,15 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
                 else:
                     await playback_message(ctx, 'BRM buff timer removed')
                 await post_update_in_wbc_channel(ctx, 'Removal of a BRM summoner', name)
+
+    @commands.command(name='wicker-sums-remove', aliases=generate_summoner_remove_aliases("wicker"), brief='Remove user that was summoning to Wickerman', help='Removes a Wickerman summoner - example: --wicker-sums-remove Thatguy')
+    @coordinator_or_seller(seller=True)
+    async def remove_wicker_summons(self, ctx, name):
+        global wickerman_summons
+        if await has_rights_to_remove(ctx, wickerman_summons, name):
+            if await remove_summoner_buffer(ctx, wickerman_summons, name):
+                await playback_message(ctx, 'Wickerman buff timer updated to:\n' + await calc_wicker_msg())
+                await post_update_in_wbc_channel(ctx, 'Removal of a Wickerman summoner', name)
 
 
 class DMTBuffCommands(commands.Cog, name = 'Adds the <name> of a DMT buff seller and the [note] which may contain cost or other info or Removes the <name> of the DMT buffer'):
@@ -812,6 +834,7 @@ async def get_buff_times():
     message += await calc_aq_msg()
     message += await calc_brm_msg()
     message += await calc_dmf_msg()
+    message += await calc_wicker_msg()
     message += await get_alliance()
     message += await get_extra_message()
     return message
@@ -921,6 +944,15 @@ async def calc_dmf_msg():
         message = ':circus_tent:  DMF --- '
     if len(dmf_summons) > 0:
         message += await summoners_buffers_msg(dmf_summons)
+    else:
+        message += ' No summons available at this time'
+    message += '\n'
+    return message
+
+async def calc_wicker_msg():
+    message = ':jack_o_lantern:  Wickerman (Tirisfal Glades) --- '
+    if len(wickerman_summons) > 0:
+        message += await summoners_buffers_msg(wickerman_summons)
     else:
         message += ' No summons available at this time'
     message += '\n'
@@ -1303,6 +1335,15 @@ async def populate_data_from_message(message):
             if await calc_dmf_msg() != line + '\n':
                 populate_success = False
                 print('dmf')
+        elif line.startswith(':jack_o_lantern:  Wickerman (Tirisfal Glades) --- '):
+            #:jack_o_lantern:  Wickerman (Tirisfal Glades) --- Whisper  **Brmsums** (5g)  'inv' for summons
+            global wickerman_summons
+            strings = line.split(':jack_o_lantern:  Wickerman (Tirisfal Glades) --- ')
+            if 'for summons' in strings[1]:
+                await process_summoners_buffers(wickerman_summons, strings[1])
+            if await calc_wicker_msg() != line + '\n':
+                populate_success = False
+                print('wickerman')
         elif line.startswith(':warning:'):
             #:warning:  ALLY ALL OVER
             global alliance
