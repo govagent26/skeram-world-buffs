@@ -575,7 +575,7 @@ class SummonerAddCommands(commands.Cog, name='Adds the <name> of a summoner and 
         global hakkar_yi_summons
         await add_summoner_buffer(ctx, hakkar_yi_summons, name, note, ctx.message.author.id)
         await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
-        await post_update_in_wbc_channel(ctx, 'Addition/update to a YI summoner', name, note)
+        await post_update_in_wbc_channel(ctx, 'Addition/update to a :heartpulse: YI summoner', name, note)
 
     @commands.command(name='bb-sums', aliases=generate_summoner_aliases("bb"), help='Adds a BB summoner with cost/message - example: --bb-sums Thatguy 5g w/port')
     @coordinator_or_seller(seller=True)
@@ -583,7 +583,7 @@ class SummonerAddCommands(commands.Cog, name='Adds the <name> of a summoner and 
         global hakkar_bb_summons
         await add_summoner_buffer(ctx, hakkar_bb_summons, name, note, ctx.message.author.id)
         await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
-        await post_update_in_wbc_channel(ctx, 'Addition/update to a BB summoner', name, note)
+        await post_update_in_wbc_channel(ctx, 'Addition/update to a :heartpulse: BB summoner', name, note)
 
     @commands.command(name='bvsf-sums', aliases=generate_summoner_aliases("bvsf"), help='Adds a BVSF summoner with cost/message - example: --bvsf-sums Thatguy 5g w/port')
     @coordinator_or_seller(seller=True)
@@ -591,7 +591,7 @@ class SummonerAddCommands(commands.Cog, name='Adds the <name> of a summoner and 
         global bvsf_summons
         await add_summoner_buffer(ctx, bvsf_summons, name, note, ctx.message.author.id)
         await playback_message(ctx, 'BVSF buff timer updated to:\n' + await calc_bvsf_msg())
-        await post_update_in_wbc_channel(ctx, 'Addition/update to a BVSF summoner', name, note)
+        await post_update_in_wbc_channel(ctx, 'Addition/update to a :wilted_rose: BVSF summoner', name, note)
 
     @commands.command(name='dmt-sums', aliases=generate_summoner_aliases("dmt")+["dm-sums"]+generate_summoner_aliases("dm"), help='Adds a DMT summoner with cost/message - example: --dmt-sums Thatguy 5g w/port')
     @coordinator_or_seller(seller=True)
@@ -599,7 +599,7 @@ class SummonerAddCommands(commands.Cog, name='Adds the <name> of a summoner and 
         global dmt_summons
         await add_summoner_buffer(ctx, dmt_summons, name, note, ctx.message.author.id)
         await playback_message(ctx, 'DMT buff timer updated to:\n' + await calc_dmt_msg())
-        await post_update_in_wbc_channel(ctx, 'Addition/update to a DMT summoner', name, note)
+        await post_update_in_wbc_channel(ctx, 'Addition/update to a :crown: DMT summoner', name, note)
 
     @commands.command(name='dmf-sums', aliases=generate_summoner_aliases("dmf"), help='Adds a DMF summoner with cost/message - example: --dmf-sums Thatguy 5g w/port')
     @coordinator_or_seller(seller=True)
@@ -607,7 +607,7 @@ class SummonerAddCommands(commands.Cog, name='Adds the <name> of a summoner and 
         global dmf_summons
         await add_summoner_buffer(ctx, dmf_summons, name, note, ctx.message.author.id)
         await playback_message(ctx, 'DMF buff timer updated to:\n' + await calc_dmf_msg())
-        await post_update_in_wbc_channel(ctx, 'Addition/update to a DMF summoner', name, note)
+        await post_update_in_wbc_channel(ctx, 'Addition/update to a :circus_tent: DMF summoner', name, note)
 
     @commands.command(name='naxx-sums', aliases=generate_summoner_aliases("naxx")+["nax-sums"]+generate_summoner_aliases("nax"), help='Adds a Naxx summoner with cost/message - example: --naxx-sums Thatguy 5g w/port')
     @coordinator_or_seller(seller=True)
@@ -615,7 +615,7 @@ class SummonerAddCommands(commands.Cog, name='Adds the <name> of a summoner and 
         global naxx_summons
         await add_summoner_buffer(ctx, naxx_summons, name, note, ctx.message.author.id)
         await playback_message(ctx, 'Naxx buff timer updated to:\n' + await calc_naxx_msg())
-        await post_update_in_wbc_channel(ctx, 'Addition/update to a Naxx summoner', name, note)
+        await post_update_in_wbc_channel(ctx, 'Addition/update to a :skull: Naxx summoner', name, note)
 
     @commands.command(name='aq-sums', aliases=generate_summoner_aliases("aq"), help='Adds a AQ Gates summoner with cost/message - example: --aq-sums Thatguy 5g w/port')
     @coordinator_or_seller(seller=True)
@@ -623,7 +623,7 @@ class SummonerAddCommands(commands.Cog, name='Adds the <name> of a summoner and 
         global aq_summons
         await add_summoner_buffer(ctx, aq_summons, name, note, ctx.message.author.id)
         await playback_message(ctx, 'AQ Gates buff timer updated to:\n' + await calc_aq_msg())
-        await post_update_in_wbc_channel(ctx, 'Addition/update to an AQ summoner', name, note)
+        await post_update_in_wbc_channel(ctx, 'Addition/update to an :bug: AQ summoner', name, note)
 
     @commands.command(name='brm-sums', aliases=generate_summoner_aliases("brm"), help='Adds a BRM summoner with cost/message - example: --brm-sums Thatguy 5g w/port')
     @coordinator_or_seller(seller=True)
@@ -631,7 +631,7 @@ class SummonerAddCommands(commands.Cog, name='Adds the <name> of a summoner and 
         global brm_summons
         await add_summoner_buffer(ctx, brm_summons, name, note, ctx.message.author.id)
         await playback_message(ctx, 'BRM buff timer updated to:\n' + await calc_brm_msg())
-        await post_update_in_wbc_channel(ctx, 'Addition/update to a BRM summoner', name, note)
+        await post_update_in_wbc_channel(ctx, 'Addition/update to a :mountain: BRM summoner', name, note)
 
     @commands.command(name='wicker-sums', aliases=generate_summoner_aliases("wicker")+["wickerman-sums"]+generate_summoner_aliases("wickerman"), help='Adds a wickerman (trisifal glades) summoner with cost/message - example: --wicker-sums Thatguy 5g w/port')
     @coordinator_or_seller(seller=True)
@@ -639,7 +639,7 @@ class SummonerAddCommands(commands.Cog, name='Adds the <name> of a summoner and 
         global wickerman_summons
         await add_summoner_buffer(ctx, wickerman_summons, name, note, ctx.message.author.id)
         await playback_message(ctx, 'Wickerman buff timer updated to:\n' + await calc_wicker_msg())
-        await post_update_in_wbc_channel(ctx, 'Addition/update to a Wickerman summoner', name, note)
+        await post_update_in_wbc_channel(ctx, 'Addition/update to a :jack_o_lantern: Wickerman summoner', name, note)
 
 
 class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summoner'):
@@ -653,7 +653,7 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
         if await has_rights_to_remove(ctx, hakkar_yi_summons, name):
             if await remove_summoner_buffer(ctx, hakkar_yi_summons, name):
                 await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
-                await post_update_in_wbc_channel(ctx, 'Removal of a YI summoner', name)
+                await post_update_in_wbc_channel(ctx, 'Removal of a :heartpulse: YI summoner', name)
 
     @commands.command(name='bb-sums-remove', aliases=generate_summoner_remove_aliases("bb"), brief='Remove user that was summoning to BB', help='Removes a BB summoner - example: --bb-sums-remove Thatguy')
     @coordinator_or_seller(seller=True)
@@ -662,7 +662,7 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
         if await has_rights_to_remove(ctx, hakkar_bb_summons, name):
             if await remove_summoner_buffer(ctx, hakkar_bb_summons, name):
                 await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
-                await post_update_in_wbc_channel(ctx, 'Removal of a BB summoner', name)
+                await post_update_in_wbc_channel(ctx, 'Removal of a :heartpulse: BB summoner', name)
 
     @commands.command(name='bvsf-sums-remove', aliases=generate_summoner_remove_aliases("bvsf"), brief='Remove user that was summoning to BVSF', help='Removes a BVSF summoner - example: --bvsf-sums-remove Thatguy 5g w/port')
     @coordinator_or_seller(seller=True)
@@ -671,7 +671,7 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
         if await has_rights_to_remove(ctx, bvsf_summons, name):
             if await remove_summoner_buffer(ctx, bvsf_summons, name):
                 await playback_message(ctx, 'BVSF buff timer updated to:\n' + await calc_bvsf_msg())
-                await post_update_in_wbc_channel(ctx, 'Removal of a BVSF summoner', name)
+                await post_update_in_wbc_channel(ctx, 'Removal of a :wilted_rose: BVSF summoner', name)
 
     @commands.command(name='dmt-sums-remove', aliases=generate_summoner_remove_aliases("dmt")+["dm-sums-remove"]+generate_summoner_remove_aliases("dm"), brief='Remove user that was summoning to DMT', help='Removes a DMT summoner - example: --dmt-sums-remove Thatguy')
     @coordinator_or_seller(seller=True)
@@ -680,7 +680,7 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
         if await has_rights_to_remove(ctx, dmt_summons, name):
             if await remove_summoner_buffer(ctx, dmt_summons, name):
                 await playback_message(ctx, 'DMT buff timer updated to:\n' + await calc_dmt_msg())
-                await post_update_in_wbc_channel(ctx, 'Removal of a DMT summoner', name)
+                await post_update_in_wbc_channel(ctx, 'Removal of a :crown: DMT summoner', name)
 
     @commands.command(name='dmf-sums-remove', aliases=generate_summoner_remove_aliases("dmf"), brief='Remove user that was summoning to DMF', help='Removes a DMF summoner - example: --dmf-sums-remove Thatguy')
     @coordinator_or_seller(seller=True)
@@ -692,7 +692,7 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
                     await playback_message(ctx, 'DMF buff timer updated to:\n' + await calc_dmf_msg())
                 else:
                     await playback_message(ctx, 'DMF buff timer removed')
-                await post_update_in_wbc_channel(ctx, 'Removal of a DMF summoner', name)
+                await post_update_in_wbc_channel(ctx, 'Removal of a :circus_tent: DMF summoner', name)
 
     @commands.command(name='naxx-sums-remove', aliases=generate_summoner_remove_aliases("naxx")+["nax-sums-remove"]+generate_summoner_remove_aliases("nax"), brief='Remove user that was summoning to Naxx', help='Removes a Naxx summoner - example: !naxx-sums-remove Thatguy')
     @coordinator_or_seller(seller=True)
@@ -704,7 +704,7 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
                     await playback_message(ctx, 'Naxx buff timer updated to:\n' + await calc_naxx_msg())
                 else:
                     await playback_message(ctx, 'Naxx buff timer removed')
-                await post_update_in_wbc_channel(ctx, 'Removal of a Naxx summoner', name)
+                await post_update_in_wbc_channel(ctx, 'Removal of a :skull: Naxx summoner', name)
 
     @commands.command(name='aq-sums-remove', aliases=generate_summoner_remove_aliases("aq"), brief='Remove user that was summoning to AQ Gates', help='Removes a AQ Gates summoner - example: --aq-sums-remove Thatguy')
     @coordinator_or_seller(seller=True)
@@ -716,7 +716,7 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
                     await playback_message(ctx, 'AQ Gates buff timer updated to:\n' + await calc_aq_msg())
                 else:
                     await playback_message(ctx, 'AQ Gates buff timer removed')
-                await post_update_in_wbc_channel(ctx, 'Removal of an AQ summoner', name)
+                await post_update_in_wbc_channel(ctx, 'Removal of an :bug: AQ summoner', name)
 
     @commands.command(name='brm-sums-remove', aliases=generate_summoner_remove_aliases("brm"), brief='Remove user that was summoning to BRM', help='Removes a BRM summoner - example: --brm-sums-remove Thatguy')
     @coordinator_or_seller(seller=True)
@@ -728,7 +728,7 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
                     await playback_message(ctx, 'BRM buff timer updated to:\n' + await calc_brm_msg())
                 else:
                     await playback_message(ctx, 'BRM buff timer removed')
-                await post_update_in_wbc_channel(ctx, 'Removal of a BRM summoner', name)
+                await post_update_in_wbc_channel(ctx, 'Removal of a :mountain: BRM summoner', name)
 
     @commands.command(name='wicker-sums-remove', aliases=generate_summoner_remove_aliases("wicker")+["wickerman-sums-remove"]+generate_summoner_remove_aliases("wickerman"), brief='Remove user that was summoning to Wickerman', help='Removes a Wickerman summoner - example: --wicker-sums-remove Thatguy')
     @coordinator_or_seller(seller=True)
@@ -737,7 +737,7 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
         if await has_rights_to_remove(ctx, wickerman_summons, name):
             if await remove_summoner_buffer(ctx, wickerman_summons, name):
                 await playback_message(ctx, 'Wickerman buff timer updated to:\n' + await calc_wicker_msg())
-                await post_update_in_wbc_channel(ctx, 'Removal of a Wickerman summoner', name)
+                await post_update_in_wbc_channel(ctx, 'Removal of a :jack_o_lantern: Wickerman summoner', name)
 
 
 class DMTBuffCommands(commands.Cog, name = 'Adds the <name> of a DMT buff seller and the [note] which may contain cost or other info or Removes the <name> of the DMT buffer'):
@@ -747,7 +747,7 @@ class DMTBuffCommands(commands.Cog, name = 'Adds the <name> of a DMT buff seller
         global dmt_buffs
         await add_summoner_buffer(ctx, dmt_buffs, name, note, ctx.message.author.id)
         await playback_message(ctx, 'DMT buff timer updated to:\n' + await calc_dmt_msg())
-        await post_update_in_wbc_channel(ctx, 'Addition/update to a DMT buffer', name, note)
+        await post_update_in_wbc_channel(ctx, 'Addition/update to a :crown: DMT buffer', name, note)
 
     @commands.command(name='dmt-buffs-remove', aliases=['dmt-buff-remove', 'dm-buffs-remove', 'dm-buff-remove'], help='Removes a DMT buffer - example: --dmt-buffs-remove Thatguy')
     @coordinator_or_seller(seller=True)
@@ -756,7 +756,7 @@ class DMTBuffCommands(commands.Cog, name = 'Adds the <name> of a DMT buff seller
         if await has_rights_to_remove(ctx, dmt_buffs, name):
             if await remove_summoner_buffer(ctx, dmt_buffs, name):
                 await playback_message(ctx, 'DMT buff timer updated to:\n' + await calc_dmt_msg())
-                await post_update_in_wbc_channel(ctx, 'Removal of a DMT buffer', name)
+                await post_update_in_wbc_channel(ctx, 'Removal of a :crown: DMT buffer', name)
 
 
 class DMFBuffCommands(commands.Cog, name = 'Specifies the [location] of the DMF (Elwynn Forest or Mulgore) - specifying no location will hide the message when no summoners are present'):
