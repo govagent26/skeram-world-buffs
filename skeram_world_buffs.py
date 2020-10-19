@@ -438,7 +438,7 @@ async def on_message(message):
 
 
 class BuffAvailTimeCommands(commands.Cog, name='Specifies the <time> when the buff is open/off CD'):
-    @commands.command(name='rend', brief='Set time for when rend is open/off CD', help='Sets the next available time rend buff is open - example: --rend 2:54pm')
+    @commands.command(name='rend', aliases=['rend-time'], brief='Set time for when rend is open/off CD', help='Sets the next available time rend buff is open - example: --rend 2:54pm')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_rend_time(self, ctx, time):
         global rend
@@ -447,7 +447,7 @@ class BuffAvailTimeCommands(commands.Cog, name='Specifies the <time> when the bu
         await post_in_world_buffs_chat_channel()
         await playback_message(ctx, 'Rend buff timer updated to:\n' + await calc_rend_msg())
 
-    @commands.command(name='ony', brief='Set time for when ony is open/off CD', help='Sets the next available time ony buff is open - example: --ony 2:54pm')
+    @commands.command(name='ony', aliases=['ony-time'], brief='Set time for when ony is open/off CD', help='Sets the next available time ony buff is open - example: --ony 2:54pm')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_ony_time(self, ctx, time):
         global ony
@@ -456,7 +456,7 @@ class BuffAvailTimeCommands(commands.Cog, name='Specifies the <time> when the bu
         await post_in_world_buffs_chat_channel()
         await playback_message(ctx, 'Ony buff timer updated to:\n' + await calc_ony_msg())
 
-    @commands.command(name='nef', brief='Set time for when nef is open/off CD', help='Sets the next available time nef buff is open - example: --nef 2:54pm')
+    @commands.command(name='nef', aliases=['nef-time'], brief='Set time for when nef is open/off CD', help='Sets the next available time nef buff is open - example: --nef 2:54pm')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_nef_time(self, ctx, time):
         global nef
@@ -467,7 +467,7 @@ class BuffAvailTimeCommands(commands.Cog, name='Specifies the <time> when the bu
 
 
 class BVSFBuffCommands(commands.Cog, name = 'Sets the next <time> the BVSF flower should be up or clears it'):
-    @commands.command(name='bvsf', brief='Set time when BVSF is up', help='Sets the next time bvsf flower buff is up - example: --bvsf 2:54pm')
+    @commands.command(name='bvsf', aliases=['bvsf-time'], brief='Set time when BVSF is up', help='Sets the next time bvsf flower buff is up - example: --bvsf 2:54pm')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_bvsf_time(self, ctx, time):
         global bvsf_time
