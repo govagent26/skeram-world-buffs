@@ -818,6 +818,23 @@ class ExtraMessageCommands(commands.Cog, name = 'Specifies an additional footer 
         else:
             await playback_message(ctx, 'Extra footer message removed')
 
+@bot.command(name='dendave-add', description='Sets the extra message/footer section with the Dendave seller message - example: --dendave-add')
+@coordinator_or_seller(seller=True)
+async def set_dendave_extra_footer_message(ctx):
+    global extra_message
+    extra_message = ":airplane::heartpulse::wilted_rose::crown::bug::mountain: **Denmule** selling 8g summons to all raid & buff locations. Whisper 'inv __' with destination (i.e. Blasted Lands, DMT, BVSF, YI, AQ, BWL, MC, Org)"
+    await post_in_world_buffs_chat_channel()
+    await playback_message(ctx, 'Extra footer message updated to:\n' + await get_extra_message())
+    await post_update_in_wbc_channel(ctx, 'Added Dendave extra footer message')
+
+@bot.command(name='dendave-remove', description='Removes the extra message/footer section - example: --dendave-remove')
+@coordinator_or_seller(seller=True)
+async def remove_dendave_extra_footer_message(ctx):
+    global extra_message
+    extra_message = ''
+    await post_in_world_buffs_chat_channel()
+    await playback_message(ctx, 'Extra footer message removed')
+    await post_update_in_wbc_channel(ctx, 'Removed Dendave extra footer message')
 
 
 async def get_buff_times():
@@ -1109,12 +1126,13 @@ async def has_rights_to_remove(ctx, summoners_buffers, name):
         return False
     return True
 
-async def post_update_in_wbc_channel(ctx, embed_desc, name, note=None):
+async def post_update_in_wbc_channel(ctx, embed_desc, name=None, note=None):
     if (ctx.message.guild == None):
         wbc_channel = bot.get_channel(WBC_CHANNEL_ID)
         embed = discord.Embed(title="**DM Update**", description=embed_desc, color=0xa6a6a6)
         embed.add_field(name="Author", value=ctx.message.author.mention, inline=False)
-        embed.add_field(name="Character Name", value=name.title(), inline=True)
+        if name != None:
+            embed.add_field(name="Character Name", value=name.title(), inline=True)
         if note != None:
             note_str = await construct_args_message(note)
             if note_str == '':
