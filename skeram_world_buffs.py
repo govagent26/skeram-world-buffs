@@ -4,6 +4,7 @@ import random
 import re
 import platform
 import discord
+import enum
 
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
@@ -11,6 +12,7 @@ from datetime import datetime, timedelta
 from pytz import timezone
 
 
+# load all environment properties
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 SKERAM_SERVER_ID = int(os.getenv('SKERAM_SERVER_ID'))
@@ -22,54 +24,102 @@ MASTER_ID = int(os.getenv('MASTER_ID'))
 
 PRINT_TIME_FORMAT = '%-I:%M%p' if platform.system() != 'Windows' else '%#I:%M%p'
 
+# set constants
 TIME_UNKNOWN = '?:??'
 BVSF_CORRUPTED = '**CORRUPTED**'
-
 WORLD_BUFF_COORDINATOR = 'WBC'
 WORLD_BUFF_SELLER = 'WBS'
-
+# minutes after a drop to be auto-removed
 TIME_AFTER_DROP_TO_AUTO_REMOVE = 1
 
+# initialize the discord bot
 bot = commands.Bot(command_prefix=['--', '—', '-'], case_insensitive=True)
 bot.remove_command('help')
 
 
+# class for rend/ony/nef buff times and droppers
 class DropBuffs:
     def __init__(self, t=TIME_UNKNOWN, d=[]):
         self.time = t
         self.drops = d
     
-    def find_dropper(name_or_time):
+    def find_dropper(self, name_or_time):
+        # fix any formatting issues and do .lower for comparison
         clean_name_or_time = remove_command_surrounding_special_characters(name_or_time).lower()
         for dropper in self.drops:
+            # try to find a matching dropper via name or time
             if dropper.name.lower() == clean_name_or_time or dropper.time.lower() == clean_name_or_time:
                 return dropper
+        # if no match found, just return None
         return None
 
-    def remove_drop(dropper):
+    def add_drop(self, time, name):
+        self.drops.append(Dropper(time, name))
+
+    def remove_drop(self, dropper):
         self.drops.remove(dropper)
 
+# class for dropper info
 class Dropper:
     def __init__(self, t=TIME_UNKNOWN, n='NA', a=''):
         self.time = t
         self.name = n
         self.author = a
 
+# enum class for all possible summon/buff services sold
+class Services(enum.Enum):
+    YI = 1
+    BB = 2
+    BVSF = 3
+    DMTB = 4
+    DMTS = 5
+    DMF = 6
+    BRM = 7
+    AQ = 8
+    NAXX = 9
+    WICKERMAN = 10
+
+# class for summons and (DMT) buff sellers
+class Sellers:
+    def __init__(self):
+        # initialize the sellers map
+        self.sellers = {new_list: [] for new_list in Services} 
+
+    def find_seller(self, service, name):
+        # fix any formatting issues and do .title for comparison
+        clean_title_name = remove_command_surrounding_special_characters(name).title()
+        for seller in self.sellers[service]:
+            # try to find a matching seller via name
+            if seller.name == clean_title_name:
+                return seller
+        # if no match found, just return None
+        return None
+
+    def add_seller(self, service, name, message='', author_id=''):
+        self.sellers[service].append(SummonerBuffer(name, message, author_id))
+
+    def remove_seller(self, service, seller):
+        self.sellers[service].remove(seller)
+
+# class for seller info
 class SummonerBuffer:
     def __init__(self, n=TIME_UNKNOWN, m='NA', a=''):
         self.name = n
         self.msg = m
         self.author = a
 
+# variables to store the state of all droppers/sellers/etc...
 playback_updates = True
 server_maintenance = ''
 rend = DropBuffs(d=[])
 ony = DropBuffs(d=[])
 nef = DropBuffs(d=[])
 hakkar_drops = []
+sellers = Sellers()
 hakkar_yi_summons = []
 hakkar_bb_summons = []
 bvsf_time = TIME_UNKNOWN
+bvsf_update_count = 0
 bvsf_summons = []
 dmt_buffs = []
 dmt_summons = []
@@ -81,8 +131,6 @@ dmf_summons = []
 wickerman_summons = []
 alliance = ''
 extra_message = ''
-
-bvsf_update_count = 0
 
 
 def coordinator_or_seller(coordinator=True, seller=False):
@@ -288,6 +336,14 @@ async def on_ready():
     else:
         await wbc_channel.send('**Bot restarted....**\nNo exising message found, all data cleared')
     check_for_message_updates.start()
+    #test junk
+    #sellers.sellers[Services.YI].append(SummonerBuffer("Bob", "5g"))
+    #sellers.sellers[Services.BB].append(SummonerBuffer("Rob", "6g"))
+    #for service in Services:
+    #    print("{0}={1}".format(service, sellers.sellers[service]))
+    #print(sellers.find_seller(Services.BB, "Rob"))
+    #sellers.remove_seller(Services.BB, sellers.find_seller(Services.BB, "Rob"))
+    #print(sellers.sellers[Services.BB])
 
 @tasks.loop(minutes=1)
 async def check_for_message_updates():
