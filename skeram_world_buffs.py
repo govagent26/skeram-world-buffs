@@ -1104,7 +1104,7 @@ async def add_dropper_no_post(droppers, name, time):
     actual_name = clean_name
     actual_time = clean_time
     # support for reverse order params (when provided time is valid)
-    if await validate_time_format(clean_name):
+    if await validate_time_format(await correct_time_format(clean_name)):
         actual_name = clean_time
         actual_time = clean_name
     actual_title_name = actual_name.title()
@@ -1118,6 +1118,7 @@ async def add_dropper_no_post(droppers, name, time):
     droppers.append(dropper)
 
 async def format_time(time):
+    time = await correct_time_format(time)
     if not await validate_time_format(time):
         return time;
     date_time = datetime.strptime(time, '%I:%M%p')
@@ -1230,6 +1231,36 @@ async def calculate_next_time(time_str, minutes_to_add):
 async def validate_time_format(time):
     valid = re.search('^[0-1]?[0-9]:[0-5][0-9][a,p]m$', time.lower())
     return valid
+
+async def correct_time_format(time):
+    is_time_without_am_pm = re.search('^[0-1]?[0-9]:[0-5][0-9]$', time.lower())
+    if is_time_without_am_pm:
+        utc = timezone('UTC')
+        now = utc.localize(datetime.utcnow())
+        local_time = now.astimezone(timezone('US/Eastern'))
+        current_hour = local_time.hour
+        time_hour = int(time.split(":")[0])
+        # change time to 0 for midnight/noon
+        if time_hour == 12:
+            time_hour = 0
+        # 12-23 -> currently pm
+        if (current_hour > 11):
+            current_hour = current_hour - 12
+            # 17 -> 5 > 1 --- set to am
+            if (current_hour > time_hour):
+                return time+"am"
+            # 17 -> 5 < 8 --- set to pm
+            else:
+                return time+"pm"
+        # 0-11 -> currently am
+        else:
+            # 5 > 1 --- set to pm
+            if (current_hour > time_hour):
+                return time+"pm"
+            # 5 < 8 --- set to am
+            else:
+                return time+"am"
+    return time
 
 async def playback_message(ctx, message):
     if (playback_updates):
