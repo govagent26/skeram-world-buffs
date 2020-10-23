@@ -109,6 +109,7 @@ class SummonerBuffer:
         self.author = a
 
 # variables to store the state of all droppers/sellers/etc...
+data_loaded = False
 playback_updates = True
 server_maintenance = ''
 rend = DropBuffs(d=[])
@@ -318,23 +319,30 @@ async def on_command_error(ctx, error):
 
 @bot.event
 async def on_ready():
-    world_buff_channel = bot.get_channel(WORLD_BUFF_CHANNEL_ID)
-    wbc_channel = bot.get_channel(WBC_CHANNEL_ID)
-    messages = await world_buff_channel.history(limit = 1).flatten()
-    if len(messages) > 0 and messages[0].author == bot.user:
-        message = await world_buff_channel.fetch_message(messages[0].id)
-        message_content = message.content
-        populate_success = await populate_data_from_message(message_content)
+    try:
+        # find the last message and see if it was from the bot to load data
+        world_buff_channel = bot.get_channel(WORLD_BUFF_CHANNEL_ID)
+        wbc_channel = bot.get_channel(WBC_CHANNEL_ID)
+        messages = await world_buff_channel.history(limit = 1).flatten()
+        if len(messages) > 0 and messages[0].author == bot.user:
+            # message found, load data
+            message = await world_buff_channel.fetch_message(messages[0].id)
+            message_content = message.content
+            populate_success = await populate_data_from_message(message_content)
 
-        new_message = await get_buff_times()
-        if not populate_success:
-            await wbc_channel.send('**Bot restarted....**\nExisting Message:\n{0}\n\n\n'.format(message_content))
-            await wbc_channel.send('New Message:\n{0}\n\nSome discrepencies may exist in existing vs new message after restart, please verify'.format(new_message))
-        #else:
-            #await wbc_channel.send('**Bot restarted....**\nworld-buff-times message reposted')
-        await message.edit(content = new_message)
-    else:
-        await wbc_channel.send('**Bot restarted....**\nNo exising message found, all data cleared')
+            new_message = await get_buff_times()
+            if not populate_success:
+                await wbc_channel.send('**Bot restarted....**\nExisting Message:\n{0}\n\n\n'.format(message_content))
+                await wbc_channel.send('New Message:\n{0}\n\nSome discrepencies may exist in existing vs new message after restart, please verify'.format(new_message))
+            #else:
+                #await wbc_channel.send('**Bot restarted....**\nworld-buff-times message reposted') 
+            await message.edit(content = new_message)
+        else:
+            # no message found, nothing to load
+            await wbc_channel.send('**Bot restarted....**\nNo exising message found, all data cleared')
+    finally:
+        global data_loaded
+        data_loaded = True
     check_for_message_updates.start()
     #test junk
     #sellers.sellers[Services.YI].append(SummonerBuffer("Bob", "5g"))
@@ -487,6 +495,9 @@ async def check_for_message_updates():
 
 @bot.event
 async def on_message(message):
+    if not data_loaded:
+        # bot not loaded, don't accept messages yet
+        return
     if message.channel.id != WBC_CHANNEL_ID and message.guild != None:
         # only read non-help messages from designated channel
         return
