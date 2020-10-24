@@ -21,6 +21,7 @@ WBC_CHANNEL_ID = int(os.getenv('WBC_CHANNEL_ID'))
 WORLD_BUFF_COORDINATOR_ROLE_ID = int(os.getenv('WORLD_BUFF_COORDINATOR_ROLE_ID'))
 WORLD_BUFF_SELLER_ROLE_ID = int(os.getenv('WORLD_BUFF_SELLER_ROLE_ID'))
 MASTER_ID = int(os.getenv('MASTER_ID'))
+DEBUG = True if os.getenv('DEBUG') == 'true' else False
 
 PRINT_TIME_FORMAT = '%-I:%M%p' if platform.system() != 'Windows' else '%#I:%M%p'
 
@@ -68,16 +69,24 @@ class Dropper:
 
 # enum class for all possible summon/buff services sold
 class Services(enum.Enum):
-    YI = 1
-    BB = 2
-    BVSF = 3
-    DMTB = 4
-    DMTS = 5
-    DMF = 6
-    BRM = 7
-    AQ = 8
-    NAXX = 9
-    WICKERMAN = 10
+    YI = ServiceInfo("YI", ":heartpulse:", True, "Hakkar", calc_hakkar_msg)
+    BB = ServiceInfo("BB", ":heartpulse:", True, "Hakkar", calc_hakkar_msg)
+    BVSF = ServiceInfo("BVSF", ":heartpulse:", True, "BVSF", calc_bvsf_msg)
+    DMTB = ServiceInfo("DMT", ":heartpulse:", False, "DMT", calc_dmt_msg)
+    DMTS = ServiceInfo("DMT", ":heartpulse:", True, "DMT", calc_dmt_msg)
+    DMF = ServiceInfo("DMF", ":heartpulse:", True, "DMF", calc_dmf_msg)
+    BRM = ServiceInfo("BRM", ":heartpulse:", True, "BRM", calc_brm_msg)
+    AQ = ServiceInfo("AQ", ":heartpulse:", True, "AQ", calc_aq_msg)
+    NAXX = ServiceInfo("NAXX", ":heartpulse:", True, "Naxx", calc_naxx_msg)
+    WICKERMAN = ServiceInfo("WICKERMAN", ":heartpulse:", True, "Wickerman", calc_wicker_msg)
+
+class ServiceInfo:
+    def __init__(self, n, i, s, o, f):
+        self.name = n
+        self.icon = i
+        self.summoner = s
+        self.output_line_name = o
+        self.output_function = f
 
 # class for summons and (DMT) buff sellers
 class Sellers:
@@ -132,6 +141,82 @@ dmf_summons = []
 wickerman_summons = []
 alliance = ''
 extra_message = ''
+
+
+async def add_update_service_seller(ctx, service, name, *note):
+    # 1. Clean and format input
+    clean_title_name = remove_command_surrounding_special_characters(name).title()
+    message = await construct_args_message(note)
+    if len(message) > 30:
+        # cap message length to 30 characters to avoid too much spamming
+        message = message[:30]
+    # 2. Check if service already posted
+    seller = sellers.find_seller(service, name)
+    if seller == None:
+        # 2a. If not posted (find_seller == None) -> add flow
+        await add_service_seller(ctx, service, clean_title_name, message)
+    else:
+        # 2b. If posted (find_seller != None) -> update flow
+        await update_service_seller(ctx, service, seller, clean_title_name, message)
+
+    # debug ouput for testing/verification
+    if DEBUG:
+        for service in Services:
+            print("{0}={1}".format(service, sellers.sellers[service]))
+
+async def add_service_seller(ctx, service, name, message):
+    # 3. No rights check needed
+    # 4. Add seller for service (add_seller)
+    sellers.add_seller(service, name, message, ctx.message.author.id)
+    # 5. Post update to world-buff-chat channel
+    await post_in_world_buffs_chat_channel()
+    # 6. Playback that update was done
+    await playback_message(ctx, '{0} buff timer updated to:\n{1}'.format(service.output_line_name, await service.output_function()))
+    # 7. If update done via DM, post log record in wbc-commands channel
+    await post_update_in_wbc_channel(ctx, 'Added a {0} {1} {2}'.format(service.icon, service.name, "summoner" if service.summoner else "buffer"), name, message)
+
+async def update_service_seller(ctx, service, seller, name, message):
+    # 3. Check for rights, if a seller then author ID must match
+    if not is_coordinator(ctx) and seller.author != '' and seller.author != ctx.message.author.id:
+        # 3b. no rights -> playback message that no rights to update, return
+        await playback_message(ctx, ':warning: Missing Rights - only the user who added this service can update it')
+        return
+    # 4. Update message
+    seller.msg = message
+    # 5. Post update to world-buff-chat channels
+    await post_in_world_buffs_chat_channel()
+    # 6. Playback that update was done
+    await playback_message(ctx, '{0} buff timer updated to:\n{1}'.format(service.output_line_name, await service.output_function()))
+    # 7. If update done via DM, post log record in wbc-commands channel
+    await post_update_in_wbc_channel(ctx, 'Updated message for a {0} {1} {2}'.format(service.icon, service.name, "summoner" if service.summoner else "buffer"), name, message)
+
+async def remove_service_seller(ctx, service, name):
+    # 1. Clean and format input
+    clean_title_name = remove_command_surrounding_special_characters(name).title()
+    # 2. Check if service already posted
+    seller = sellers.find_seller(service, name)
+    if seller == None:
+        # 2b. If not posted -> playback message that does not exist
+        await playback_message(ctx, ':warning: User not currently posted - nothing to remove')
+        return
+    # 3. Check for rights, if a seller then author ID must match
+    if not is_coordinator(ctx) and seller.author != '' and seller.author != ctx.message.author.id:
+        # 3b. no rights -> playback message that no rights to remove, return
+        await playback_message(ctx, ':warning: Missing Rights - only the user who added this service can remove it')
+        return
+    # 4. Remove service listing
+    sellers.remove_seller(service, seller)
+    # 5. Post update to world-buff-chat channels
+    await post_in_world_buffs_chat_channel()
+    # 6. Playback that update was done
+    await playback_message(ctx, '{0} buff timer updated to:\n{1}'.format(service.output_line_name, await service.output_function()))
+    # 7. If update done via DM, post log record in wbc-commands channel
+    await post_update_in_wbc_channel(ctx, 'Removed a {0} {1} {2}'.format(service.icon, service.name, "summoner" if service.summoner else "buffer"), name, message)
+
+    # debug ouput for testing/verification
+    if DEBUG:
+        for service in Services:
+            print("{0}={1}".format(service, sellers.sellers[service]))
 
 
 def coordinator_or_seller(coordinator=True, seller=False):
@@ -344,14 +429,7 @@ async def on_ready():
         global data_loaded
         data_loaded = True
     check_for_message_updates.start()
-    #test junk
-    #sellers.sellers[Services.YI].append(SummonerBuffer("Bob", "5g"))
-    #sellers.sellers[Services.BB].append(SummonerBuffer("Rob", "6g"))
-    #for service in Services:
-    #    print("{0}={1}".format(service, sellers.sellers[service]))
-    #print(sellers.find_seller(Services.BB, "Rob"))
-    #sellers.remove_seller(Services.BB, sellers.find_seller(Services.BB, "Rob"))
-    #print(sellers.sellers[Services.BB])
+
 
 @tasks.loop(minutes=1)
 async def check_for_message_updates():
