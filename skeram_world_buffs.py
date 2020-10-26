@@ -70,14 +70,14 @@ async def add_service_seller(ctx, service, name, message):
     # 6. Playback that update was done
     await playback_message(ctx, '{0} buff timer updated to:\n{1}'.format(service_info.output_line_name, await service_info.output_function()))
     # 7. If update done via DM, post log record in wbc-commands channel
-    await post_update_in_wbc_channel(ctx, 'Added a {0} {1} {2}'.format(service_info.icon, service_info.name, "summoner" if service_info.summoner else "buffer"), name, [message])
+    await post_update_in_wbc_channel(ctx, 'Added a {0} {1} {2}'.format(service_info.icon, service_info.name, 'summoner' if service_info.summoner else 'buffer'), name, [message], '**{0} {1} - DM Update**'.format(service_info.icon, service_info.name))
 
 async def update_service_seller(ctx, service, seller, name, message):
     service_info = service.value
     # 3. Check for rights, if a seller then author ID must match
     if not is_coordinator(ctx) and seller.author != '' and seller.author != ctx.message.author.id:
         # 3b. no rights -> playback message that no rights to update, return
-        await playback_message(ctx, ':warning: Missing Rights - only the user who added this service can update it')
+        await playback_message(ctx, ':no_entry_sign: Missing Rights - only the user who added this service can update it')
         return
     # 4. Update message
     seller.msg = message
@@ -86,7 +86,7 @@ async def update_service_seller(ctx, service, seller, name, message):
     # 6. Playback that update was done
     await playback_message(ctx, '{0} buff timer updated to:\n{1}'.format(service_info.output_line_name, await service_info.output_function()))
     # 7. If update done via DM, post log record in wbc-commands channel
-    await post_update_in_wbc_channel(ctx, 'Updated message for a {0} {1} {2}'.format(service_info.icon, service_info.name, "summoner" if service_info.summoner else "buffer"), name, [message])
+    await post_update_in_wbc_channel(ctx, 'Updated message for a {0} {1} {2}'.format(service_info.icon, service_info.name, 'summoner' if service_info.summoner else 'buffer'), name, [message], '**{0} {1} - DM Update**'.format(service_info.icon, service_info.name))
 
 # function to remove a service sellers info
 async def remove_service_seller(ctx, service, name):
@@ -103,19 +103,24 @@ async def remove_service_seller(ctx, service, name):
         # 3. Check for rights, if a seller then author ID must match
         if not is_coordinator(ctx) and seller.author != '' and seller.author != ctx.message.author.id:
             # 3b. no rights -> playback message that no rights to remove, return
-            await playback_message(ctx, ':warning: Missing Rights - only the user who added this service can remove it')
+            await playback_message(ctx, ':no_entry_sign: Missing Rights - only the user who added this service can remove it')
             return
         # 4. Remove service listing
         sellers.remove_seller(service, seller)
         # 5. Post update to world-buff-chat channels
         await post_in_world_buffs_chat_channel()
         # 6. Playback that update was done
-        await playback_message(ctx, '{0} buff timer updated to:\n{1}'.format(service_info.output_line_name, await service_info.output_function()))
+        output = await service_info.output_function()
+        if (output != ''):
+            await playback_message(ctx, '{0} buff timer updated to:\n{1}'.format(service_info.output_line_name, output))
+        else:
+            await playback_message(ctx, '{0} buff timer removed'.format(service_info.output_line_name))
         # 7. If update done via DM, post log record in wbc-commands channel
-        await post_update_in_wbc_channel(ctx, 'Removed a {0} {1} {2}'.format(service_info.icon, service_info.name, "summoner" if service_info.summoner else "buffer"), name)
+        await post_update_in_wbc_channel(ctx, 'Removed a {0} {1} {2}'.format(service_info.icon, service_info.name, 'summoner' if service_info.summoner else 'buffer'), name, header='**{0} {1} - DM Update**'.format(service_info.icon, service_info.name))
     finally:
         # debug ouput for testing/verification
         await debug_print_services()
+
 
 # functions to check for the user's role on the server
 def coordinator_or_seller(coordinator=True, seller=False):
@@ -994,38 +999,6 @@ async def format_time(time):
     date_time = datetime.strptime(time, '%I:%M%p')
     return datetime.strftime(date_time, PRINT_TIME_FORMAT).lower()
 
-async def add_summoner_buffer(ctx, summoners_buffers, name, note, author_id=''):
-    if await add_summoner_buffer_no_post(summoners_buffers, name, note, author_id, is_coordinator(ctx)):
-        await post_in_world_buffs_chat_channel()
-
-async def add_summoner_buffer_no_post(summoners_buffers, name, note, author_id='', coordinator=True):
-    clean_title_name = (remove_command_surrounding_special_characters(name)).title()
-    message = await construct_args_message(note)
-    if len(message) > 30:
-        message = message[:30]
-    for summon_buff in summoners_buffers:
-        if summon_buff.name == clean_title_name:
-            if coordinator or author_id == summon_buff.author or summon_buff.author == '':
-                summon_buff.msg = message
-                return True
-            raise commands.errors.MissingRole(WORLD_BUFF_COORDINATOR_ROLE_ID)
-            return False
-
-    summoner_buffer = SummonerBuffer(clean_title_name, message, author_id)
-    summoners_buffers.append(summoner_buffer)
-    return True
-
-async def remove_summoner_buffer(ctx, summoners_buffers_droppers, name):
-    clean_name = (remove_command_surrounding_special_characters(name)).lower()
-    for summon_buff_drop in summoners_buffers_droppers:
-        if summon_buff_drop.name.lower() == clean_name:
-            summoners_buffers_droppers.remove(summon_buff_drop)
-            await post_in_world_buffs_chat_channel()
-            return True
-
-    await ctx.send('Name **{0}** not found - nothing to remove'.format(name))
-    return False
-
 async def remove_dropper(ctx, droppers, name_or_time):
     clean_name_or_time = (remove_command_surrounding_special_characters(name_or_time)).lower()
     for dropper in droppers:
@@ -1037,26 +1010,10 @@ async def remove_dropper(ctx, droppers, name_or_time):
     await ctx.send('Name **{0}** not found - nothing to remove'.format(name_or_time))
     return False
 
-async def has_rights_to_remove(ctx, summoners_buffers, name):
-    # coordinators have all the power
-    if is_coordinator(ctx):
-        return True
-    # check for seller rights
-    has_rights = False
-    clean_name = (remove_command_surrounding_special_characters(name)).lower()
-    for summon_buff in summoners_buffers:
-        if summon_buff.name.lower() == clean_name and (summon_buff.author == '' or summon_buff.author == ctx.message.author.id):
-            has_rights = True
-            break
-    if not has_rights:
-        raise commands.errors.MissingRole(WORLD_BUFF_COORDINATOR_ROLE_ID)
-        return False
-    return True
-
-async def post_update_in_wbc_channel(ctx, embed_desc, name=None, note=None):
+async def post_update_in_wbc_channel(ctx, embed_desc, name=None, note=None, header="**DM Update**"):
     if (ctx.message.guild == None):
         wbc_channel = bot.get_channel(WBC_CHANNEL_ID)
-        embed = discord.Embed(title="**DM Update**", description=embed_desc, color=0xa6a6a6)
+        embed = discord.Embed(title=header, description=embed_desc, color=0xa6a6a6)
         embed.add_field(name="Author", value=ctx.message.author.mention, inline=False)
         if name != None:
             embed.add_field(name="Character Name", value=name.title(), inline=True)
