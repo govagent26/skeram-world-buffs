@@ -1520,14 +1520,14 @@ class ServiceInfo:
 class Services(enum.Enum):
     YI = ServiceInfo("YI", ":heartpulse:", True, "Hakkar", calc_hakkar_msg)
     BB = ServiceInfo("BB", ":heartpulse:", True, "Hakkar", calc_hakkar_msg)
-    BVSF = ServiceInfo("BVSF", ":heartpulse:", True, "BVSF", calc_bvsf_msg)
-    DMTB = ServiceInfo("DMT", ":heartpulse:", False, "DMT", calc_dmt_msg)
-    DMTS = ServiceInfo("DMT", ":heartpulse:", True, "DMT", calc_dmt_msg)
-    DMF = ServiceInfo("DMF", ":heartpulse:", True, "DMF", calc_dmf_msg)
-    BRM = ServiceInfo("BRM", ":heartpulse:", True, "BRM", calc_brm_msg)
-    AQ = ServiceInfo("AQ", ":heartpulse:", True, "AQ", calc_aq_msg)
-    NAXX = ServiceInfo("NAXX", ":heartpulse:", True, "Naxx", calc_naxx_msg)
-    WICKERMAN = ServiceInfo("WICKERMAN", ":heartpulse:", True, "Wickerman", calc_wicker_msg)
+    BVSF = ServiceInfo("BVSF", ":wilted_rose:", True, "BVSF", calc_bvsf_msg)
+    DMTB = ServiceInfo("DMT", ":crown:", False, "DMT", calc_dmt_msg)
+    DMTS = ServiceInfo("DMT", ":crown:", True, "DMT", calc_dmt_msg)
+    DMF = ServiceInfo("DMF", ":circus_tent:", True, "DMF", calc_dmf_msg)
+    BRM = ServiceInfo("BRM", ":mountain:", True, "BRM", calc_brm_msg)
+    AQ = ServiceInfo("AQ", ":bug:", True, "AQ", calc_aq_msg)
+    NAXX = ServiceInfo("NAXX", ":skull:", True, "Naxx", calc_naxx_msg)
+    WICKERMAN = ServiceInfo("WICKERMAN", ":jack_o_lantern:", True, "Wickerman", calc_wicker_msg)
 
 # class for summons and (DMT) buff sellers
 class Sellers:
