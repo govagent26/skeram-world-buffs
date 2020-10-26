@@ -211,30 +211,21 @@ async def clear_all_data(ctx):
     nef.time = TIME_UNKNOWN
     nef.drops = []
     global hakkar_drops
-    global hakkar_bb_summons
     hakkar_drops = []
     sellers.clear_service[Services.YI]
-    hakkar_bb_summons = []
+    sellers.clear_service[Services.BB]
     global bvsf_time
-    global bvsf_summons
     bvsf_time = TIME_UNKNOWN
-    bvsf_summons = []
-    global dmt_buffs
-    global dmt_summons
-    dmt_buffs = []
-    dmt_summons = []
-    global naxx_summons
-    naxx_summons = []
-    global aq_summons
-    aq_summons = []
-    global brm_summons
-    brm_summons = []
+    sellers.clear_service[Services.BVSF]
+    sellers.clear_service[Services.DMTB]
+    sellers.clear_service[Services.DMTS]
+    sellers.clear_service[Services.NAXX]
+    sellers.clear_service[Services.AQ]
+    sellers.clear_service[Services.BRM]
     global dmf_location
     dmf_location = ''
-    global dmf_summons
-    dmf_summons = []
-    global wickerman_summons
-    wickerman_summons = []
+    sellers.clear_service[Services.DMF]
+    sellers.clear_service[Services.WICKERMAN]
     global alliance
     alliance = ''
     global extra_message
@@ -261,33 +252,24 @@ async def mockup_data(ctx):
     global nef
     nef.time = '7:45pm'
     global hakkar_drops
-    global hakkar_bb_summons
     await add_dropper_no_post(hakkar_drops, 'Hakkardrop', '7:00pm')
     await add_dropper_no_post(hakkar_drops, 'Hakkarnotdrop', '9:15pm')
     sellers.add_seller(Services.YI, 'YIsums', '5g', 1234567890)
     sellers.add_seller(Services.YI, 'YIsummer', '4g w/port')
-    await add_summoner_buffer_no_post(hakkar_bb_summons, 'BBsums', [''])
+    sellers.add_seller(Services.BB, 'BBsums', '', 1234567890)
     global bvsf_time
-    global bvsf_summons
     bvsf_time = '4:35pm'
-    await add_summoner_buffer_no_post(bvsf_summons, 'Whosums', ['5g'])
-    global dmt_buffs
-    global dmt_summons
-    await add_summoner_buffer_no_post(dmt_buffs, 'Mybuffs', ['7g w/port and summons'])
-    await add_summoner_buffer_no_post(dmt_buffs, 'Dmtbuffs', ['5g'])
-    await add_summoner_buffer_no_post(dmt_summons, 'Datsums', ['8g'])
-    global naxx_summons
-    await add_summoner_buffer_no_post(naxx_summons, 'naxxsums', ['7g'])
-    global aq_summons
-    await add_summoner_buffer_no_post(aq_summons, 'aqSums', ['3g'])
-    global brm_summons
-    await add_summoner_buffer_no_post(brm_summons, 'brmsums', ['8g'])
+    sellers.add_seller(Services.BVSF, 'Whosums', '5g', 1234567890)
+    sellers.add_seller(Services.DMTB, 'Mybuffs', '7g w/port and summons', 1234567890)
+    sellers.add_seller(Services.DMTB, 'Dmtbuffs', '5g')
+    sellers.add_seller(Services.DMTS, 'Datsums', '8g')
+    sellers.add_seller(Services.NAXX, 'naxxsums', '7g')
+    sellers.add_seller(Services.AQ, 'aqSums', '3g')
+    sellers.add_seller(Services.BRM, 'brmsums', '7g', 1234567890)
     global dmf_location
     dmf_location = 'Mulgore'
-    global dmf_summons
-    await add_summoner_buffer_no_post(dmf_summons, 'dmfsums', ['10g'])
-    global wickerman_summons
-    await add_summoner_buffer_no_post(wickerman_summons, 'wickersums', ['9g'])
+    sellers.add_seller(Services.DMF, 'dmfsums', '10g', 1234567890)
+    sellers.add_seller(Services.WICKERMAN, 'wickersums', '9g')
     global alliance
     alliance = 'ALLY everywhere - dont die'
     global extra_message
@@ -630,66 +612,42 @@ class SummonerAddCommands(commands.Cog, name='Adds the <name> of a summoner and 
     @commands.command(name='bb-sums', aliases=generate_summoner_aliases("bb"), help='Adds a BB summoner with cost/message - example: --bb-sums Thatguy 5g w/port')
     @coordinator_or_seller(seller=True)
     async def add_hakkar_bb_summons(self, ctx, name, *note):
-        global hakkar_bb_summons
-        await add_summoner_buffer(ctx, hakkar_bb_summons, name, note, ctx.message.author.id)
-        await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
-        await post_update_in_wbc_channel(ctx, 'Addition/update to a :heartpulse: BB summoner', name, note)
+        await add_update_service_seller(ctx, Services.BB, name, note)
 
     @commands.command(name='bvsf-sums', aliases=generate_summoner_aliases("bvsf"), help='Adds a BVSF summoner with cost/message - example: --bvsf-sums Thatguy 5g w/port')
     @coordinator_or_seller(seller=True)
     async def add_bvsf_summons(self, ctx, name, *note):
-        global bvsf_summons
-        await add_summoner_buffer(ctx, bvsf_summons, name, note, ctx.message.author.id)
-        await playback_message(ctx, 'BVSF buff timer updated to:\n' + await calc_bvsf_msg())
-        await post_update_in_wbc_channel(ctx, 'Addition/update to a :wilted_rose: BVSF summoner', name, note)
+        await add_update_service_seller(ctx, Services.BVSF, name, note)
 
     @commands.command(name='dmt-sums', aliases=generate_summoner_aliases("dmt")+["dm-sums"]+generate_summoner_aliases("dm"), help='Adds a DMT summoner with cost/message - example: --dmt-sums Thatguy 5g w/port')
     @coordinator_or_seller(seller=True)
-    async def add_dmt_summoner(self, ctx, name, *note):
-        global dmt_summons
-        await add_summoner_buffer(ctx, dmt_summons, name, note, ctx.message.author.id)
-        await playback_message(ctx, 'DMT buff timer updated to:\n' + await calc_dmt_msg())
-        await post_update_in_wbc_channel(ctx, 'Addition/update to a :crown: DMT summoner', name, note)
+    async def add_dmt_summons(self, ctx, name, *note):
+        await add_update_service_seller(ctx, Services.DMTS, name, note)
 
     @commands.command(name='dmf-sums', aliases=generate_summoner_aliases("dmf"), help='Adds a DMF summoner with cost/message - example: --dmf-sums Thatguy 5g w/port')
     @coordinator_or_seller(seller=True)
-    async def add_dmf_summoner(self, ctx, name, *note):
-        global dmf_summons
-        await add_summoner_buffer(ctx, dmf_summons, name, note, ctx.message.author.id)
-        await playback_message(ctx, 'DMF buff timer updated to:\n' + await calc_dmf_msg())
-        await post_update_in_wbc_channel(ctx, 'Addition/update to a :circus_tent: DMF summoner', name, note)
+    async def add_dmf_summons(self, ctx, name, *note):
+        await add_update_service_seller(ctx, Services.DMF, name, note)
 
     @commands.command(name='naxx-sums', aliases=generate_summoner_aliases("naxx")+["nax-sums"]+generate_summoner_aliases("nax"), help='Adds a Naxx summoner with cost/message - example: --naxx-sums Thatguy 5g w/port')
     @coordinator_or_seller(seller=True)
     async def add_naxx_summons(self, ctx, name, *note):
-        global naxx_summons
-        await add_summoner_buffer(ctx, naxx_summons, name, note, ctx.message.author.id)
-        await playback_message(ctx, 'Naxx buff timer updated to:\n' + await calc_naxx_msg())
-        await post_update_in_wbc_channel(ctx, 'Addition/update to a :skull: Naxx summoner', name, note)
+        await add_update_service_seller(ctx, Services.NAXX, name, note)
 
     @commands.command(name='aq-sums', aliases=generate_summoner_aliases("aq"), help='Adds a AQ Gates summoner with cost/message - example: --aq-sums Thatguy 5g w/port')
     @coordinator_or_seller(seller=True)
-    async def add_aq_gates_summons(self, ctx, name, *note):
-        global aq_summons
-        await add_summoner_buffer(ctx, aq_summons, name, note, ctx.message.author.id)
-        await playback_message(ctx, 'AQ Gates buff timer updated to:\n' + await calc_aq_msg())
-        await post_update_in_wbc_channel(ctx, 'Addition/update to an :bug: AQ summoner', name, note)
+    async def add_aq_summons(self, ctx, name, *note):
+        await add_update_service_seller(ctx, Services.AQ, name, note)
 
     @commands.command(name='brm-sums', aliases=generate_summoner_aliases("brm"), help='Adds a BRM summoner with cost/message - example: --brm-sums Thatguy 5g w/port')
     @coordinator_or_seller(seller=True)
     async def add_brm_summons(self, ctx, name, *note):
-        global brm_summons
-        await add_summoner_buffer(ctx, brm_summons, name, note, ctx.message.author.id)
-        await playback_message(ctx, 'BRM buff timer updated to:\n' + await calc_brm_msg())
-        await post_update_in_wbc_channel(ctx, 'Addition/update to a :mountain: BRM summoner', name, note)
+        await add_update_service_seller(ctx, Services.BRM, name, note)
 
     @commands.command(name='wicker-sums', aliases=generate_summoner_aliases("wicker")+["wickerman-sums"]+generate_summoner_aliases("wickerman"), help='Adds a wickerman (trisifal glades) summoner with cost/message - example: --wicker-sums Thatguy 5g w/port')
     @coordinator_or_seller(seller=True)
-    async def add_wicker_summons(self, ctx, name, *note):
-        global wickerman_summons
-        await add_summoner_buffer(ctx, wickerman_summons, name, note, ctx.message.author.id)
-        await playback_message(ctx, 'Wickerman buff timer updated to:\n' + await calc_wicker_msg())
-        await post_update_in_wbc_channel(ctx, 'Addition/update to a :jack_o_lantern: Wickerman summoner', name, note)
+    async def add_wickerman_summons(self, ctx, name, *note):
+        await add_update_service_seller(ctx, Services.WICKERMAN, name, note)
 
 
 class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summoner'):
@@ -704,105 +662,54 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
     @commands.command(name='bb-sums-remove', aliases=generate_summoner_remove_aliases("bb"), brief='Remove user that was summoning to BB', help='Removes a BB summoner - example: --bb-sums-remove Thatguy')
     @coordinator_or_seller(seller=True)
     async def remove_hakkar_bb_summons(self, ctx, name):
-        global hakkar_bb_summons
-        if await has_rights_to_remove(ctx, hakkar_bb_summons, name):
-            if await remove_summoner_buffer(ctx, hakkar_bb_summons, name):
-                await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
-                await post_update_in_wbc_channel(ctx, 'Removal of a :heartpulse: BB summoner', name)
+        await remove_service_seller(ctx, Services.BB, name)
 
     @commands.command(name='bvsf-sums-remove', aliases=generate_summoner_remove_aliases("bvsf"), brief='Remove user that was summoning to BVSF', help='Removes a BVSF summoner - example: --bvsf-sums-remove Thatguy 5g w/port')
     @coordinator_or_seller(seller=True)
     async def remove_bvsf_summons(self, ctx, name):
-        global bvsf_summons
-        if await has_rights_to_remove(ctx, bvsf_summons, name):
-            if await remove_summoner_buffer(ctx, bvsf_summons, name):
-                await playback_message(ctx, 'BVSF buff timer updated to:\n' + await calc_bvsf_msg())
-                await post_update_in_wbc_channel(ctx, 'Removal of a :wilted_rose: BVSF summoner', name)
+        await remove_service_seller(ctx, Services.BVSF, name)
 
     @commands.command(name='dmt-sums-remove', aliases=generate_summoner_remove_aliases("dmt")+["dm-sums-remove"]+generate_summoner_remove_aliases("dm"), brief='Remove user that was summoning to DMT', help='Removes a DMT summoner - example: --dmt-sums-remove Thatguy')
     @coordinator_or_seller(seller=True)
-    async def remove_dmt_summoner(self, ctx, name):
-        global dmt_summons
-        if await has_rights_to_remove(ctx, dmt_summons, name):
-            if await remove_summoner_buffer(ctx, dmt_summons, name):
-                await playback_message(ctx, 'DMT buff timer updated to:\n' + await calc_dmt_msg())
-                await post_update_in_wbc_channel(ctx, 'Removal of a :crown: DMT summoner', name)
+    async def remove_dmt_summons(self, ctx, name):
+        await remove_service_seller(ctx, Services.DMTS, name)
 
     @commands.command(name='dmf-sums-remove', aliases=generate_summoner_remove_aliases("dmf"), brief='Remove user that was summoning to DMF', help='Removes a DMF summoner - example: --dmf-sums-remove Thatguy')
     @coordinator_or_seller(seller=True)
-    async def remove_dmf_summoner(self, ctx, name):
-        global dmf_summons
-        if await has_rights_to_remove(ctx, dmf_summons, name):
-            if await remove_summoner_buffer(ctx, dmf_summons, name):
-                if len(dmf_location) > 0 or len(dmf_summons) > 0:
-                    await playback_message(ctx, 'DMF buff timer updated to:\n' + await calc_dmf_msg())
-                else:
-                    await playback_message(ctx, 'DMF buff timer removed')
-                await post_update_in_wbc_channel(ctx, 'Removal of a :circus_tent: DMF summoner', name)
+    async def remove_dmf_summons(self, ctx, name):
+        await remove_service_seller(ctx, Services.DMF, name)
 
     @commands.command(name='naxx-sums-remove', aliases=generate_summoner_remove_aliases("naxx")+["nax-sums-remove"]+generate_summoner_remove_aliases("nax"), brief='Remove user that was summoning to Naxx', help='Removes a Naxx summoner - example: !naxx-sums-remove Thatguy')
     @coordinator_or_seller(seller=True)
     async def remove_naxx_summons(self, ctx, name):
-        global naxx_summons
-        if await has_rights_to_remove(ctx, naxx_summons, name):
-            if await remove_summoner_buffer(ctx, naxx_summons, name):
-                if len(naxx_summons) > 0:
-                    await playback_message(ctx, 'Naxx buff timer updated to:\n' + await calc_naxx_msg())
-                else:
-                    await playback_message(ctx, 'Naxx buff timer removed')
-                await post_update_in_wbc_channel(ctx, 'Removal of a :skull: Naxx summoner', name)
+        await remove_service_seller(ctx, Services.NAXX, name)
 
     @commands.command(name='aq-sums-remove', aliases=generate_summoner_remove_aliases("aq"), brief='Remove user that was summoning to AQ Gates', help='Removes a AQ Gates summoner - example: --aq-sums-remove Thatguy')
     @coordinator_or_seller(seller=True)
     async def remove_aq_summons(self, ctx, name):
-        global aq_summons
-        if await has_rights_to_remove(ctx, aq_summons, name):
-            if await remove_summoner_buffer(ctx, aq_summons, name):
-                if len(aq_summons) > 0:
-                    await playback_message(ctx, 'AQ Gates buff timer updated to:\n' + await calc_aq_msg())
-                else:
-                    await playback_message(ctx, 'AQ Gates buff timer removed')
-                await post_update_in_wbc_channel(ctx, 'Removal of an :bug: AQ summoner', name)
+        await remove_service_seller(ctx, Services.AQ, name)
 
     @commands.command(name='brm-sums-remove', aliases=generate_summoner_remove_aliases("brm"), brief='Remove user that was summoning to BRM', help='Removes a BRM summoner - example: --brm-sums-remove Thatguy')
     @coordinator_or_seller(seller=True)
     async def remove_brm_summons(self, ctx, name):
-        global brm_summons
-        if await has_rights_to_remove(ctx, brm_summons, name):
-            if await remove_summoner_buffer(ctx, brm_summons, name):
-                if len(brm_summons) > 0:
-                    await playback_message(ctx, 'BRM buff timer updated to:\n' + await calc_brm_msg())
-                else:
-                    await playback_message(ctx, 'BRM buff timer removed')
-                await post_update_in_wbc_channel(ctx, 'Removal of a :mountain: BRM summoner', name)
+        await remove_service_seller(ctx, Services.BRM, name)
 
     @commands.command(name='wicker-sums-remove', aliases=generate_summoner_remove_aliases("wicker")+["wickerman-sums-remove"]+generate_summoner_remove_aliases("wickerman"), brief='Remove user that was summoning to Wickerman', help='Removes a Wickerman summoner - example: --wicker-sums-remove Thatguy')
     @coordinator_or_seller(seller=True)
-    async def remove_wicker_summons(self, ctx, name):
-        global wickerman_summons
-        if await has_rights_to_remove(ctx, wickerman_summons, name):
-            if await remove_summoner_buffer(ctx, wickerman_summons, name):
-                await playback_message(ctx, 'Wickerman buff timer updated to:\n' + await calc_wicker_msg())
-                await post_update_in_wbc_channel(ctx, 'Removal of a :jack_o_lantern: Wickerman summoner', name)
+    async def remove_wickerman_summons(self, ctx, name):
+        await remove_service_seller(ctx, Services.WICKERMAN, name)
 
 
 class DMTBuffCommands(commands.Cog, name = 'Adds the <name> of a DMT buff seller and the [note] which may contain cost or other info or Removes the <name> of the DMT buffer'):
     @commands.command(name='dmt-buffs', aliases=['dmt-buffs-add', 'dmt-buff', 'dmt-buff-add', 'dm-buffs', 'dm-buffs-add', 'dm-buff', 'dm-buff-add'], help='Adds a DMT buffer with cost/message - example: --dmt-buffs Thatguy 5g w/port')
     @coordinator_or_seller(seller=True)
     async def add_dmt_buffs(self, ctx, name, *note):
-        global dmt_buffs
-        await add_summoner_buffer(ctx, dmt_buffs, name, note, ctx.message.author.id)
-        await playback_message(ctx, 'DMT buff timer updated to:\n' + await calc_dmt_msg())
-        await post_update_in_wbc_channel(ctx, 'Addition/update to a :crown: DMT buffer', name, note)
+        await add_update_service_seller(ctx, Services.DMTB, name, note)
 
     @commands.command(name='dmt-buffs-remove', aliases=['dmt-buff-remove', 'dm-buffs-remove', 'dm-buff-remove'], help='Removes a DMT buffer - example: --dmt-buffs-remove Thatguy')
     @coordinator_or_seller(seller=True)
     async def remove_dmt_buffs(self, ctx, name):
-        global dmt_buffs
-        if await has_rights_to_remove(ctx, dmt_buffs, name):
-            if await remove_summoner_buffer(ctx, dmt_buffs, name):
-                await playback_message(ctx, 'DMT buff timer updated to:\n' + await calc_dmt_msg())
-                await post_update_in_wbc_channel(ctx, 'Removal of a :crown: DMT buffer', name)
+        await remove_service_seller(ctx, Services.DMTB, name)
 
 
 class DMFBuffCommands(commands.Cog, name = 'Specifies the [location] of the DMF (Elwynn Forest or Mulgore) - specifying no location will hide the message when no summoners are present'):
@@ -812,7 +719,7 @@ class DMFBuffCommands(commands.Cog, name = 'Specifies the [location] of the DMF 
         global dmf_location
         dmf_location = (await construct_args_message(location)).title()
         await post_in_world_buffs_chat_channel()
-        if len(dmf_location) > 0 or len(dmf_summons) > 0:
+        if len(dmf_location) > 0 or len(sellers.sellers[Services.DMF]) > 0:
             await playback_message(ctx, 'DMF buff timer updated to:\n' + await calc_dmf_msg())
         else:
             await playback_message(ctx, 'DMF buff timer removed')
@@ -952,8 +859,8 @@ async def calc_hakkar_msg():
         message += TIME_UNKNOWN
     if len(sellers.sellers[Services.YI]) > 0:
         message += '  --  ' + await summoners_buffers_msg(sellers.sellers[Services.YI], 'YI summons')
-    if len(hakkar_bb_summons) > 0:
-        message += '  --  ' + await summoners_buffers_msg(hakkar_bb_summons, 'BB summons')
+    if len(sellers.sellers[Services.BB]) > 0:
+        message += '  --  ' + await summoners_buffers_msg(sellers.sellers[Services.BB], 'BB summons')
     return message
 
 async def calc_bvsf_msg():
@@ -963,50 +870,50 @@ async def calc_bvsf_msg():
         message = ':wilted_rose:  BVSF --- ' + bvsf_time + ' -> ' + next_time_1 + ' -> ' + next_time_2
     else:
         message = ':wilted_rose:  BVSF --- ' + bvsf_time
-    if len(bvsf_summons) > 0:
-        message += '  --  ' + await summoners_buffers_msg(bvsf_summons)
+    if len(sellers.sellers[Services.BVSF]) > 0:
+        message += '  --  ' + await summoners_buffers_msg(sellers.sellers[Services.BVSF])
     return message
 
 async def calc_dmt_msg():
-    message = await summoners_buffers_msg(dmt_buffs, 'DM buffs')
+    message = await summoners_buffers_msg(sellers.sellers[Services.DMTB], 'DM buffs')
     if len(message) == 0:
         message = 'No buffs available at this time'
-    if len(dmt_summons) > 0:
+    if len(sellers.sellers[Services.DMTS]) > 0:
         if len(message) > 0:
-            message += '  --  ' + await summoners_buffers_msg(dmt_summons)
+            message += '  --  ' + await summoners_buffers_msg(sellers.sellers[Services.DMTS])
         else:
-            message = await summoners_buffers_msg(dmt_summons)
+            message = await summoners_buffers_msg(sellers.sellers[Services.DMTS])
     message = ':crown:  DMT --- ' + message
     return message
 
 async def calc_naxx_msg():
     message = ''
-    if len(naxx_summons) > 0:
-        message = ':skull:  Naxx --- ' + await summoners_buffers_msg(naxx_summons) + '\n'
+    if len(sellers.sellers[Services.NAXX]) > 0:
+        message = ':skull:  Naxx --- ' + await summoners_buffers_msg(sellers.sellers[Services.NAXX]) + '\n'
     return message
 
 async def calc_aq_msg():
     message = ''
-    if len(aq_summons) > 0:
-        message = ':bug:  AQ Gates --- ' + await summoners_buffers_msg(aq_summons) + '\n'
+    if len(sellers.sellers[Services.AQ]) > 0:
+        message = ':bug:  AQ Gates --- ' + await summoners_buffers_msg(sellers.sellers[Services.AQ]) + '\n'
     return message
 
 async def calc_brm_msg():
     message = ''
-    if len(brm_summons) > 0:
-        message = ':mountain:  BRM --- ' + await summoners_buffers_msg(brm_summons) + '\n'
+    if len(sellers.sellers[Services.BRM]) > 0:
+        message = ':mountain:  BRM --- ' + await summoners_buffers_msg(sellers.sellers[Services.BRM]) + '\n'
     return message
 
 async def calc_dmf_msg():
-    if len(dmf_location) == 0 and len(dmf_summons) == 0:
+    if len(dmf_location) == 0 and len(sellers.sellers[Services.DMF]) == 0:
         return ''
     message = ''
     if len(dmf_location) > 0:
         message = ':circus_tent:  DMF (' + dmf_location + ') --- '
     else:
         message = ':circus_tent:  DMF --- '
-    if len(dmf_summons) > 0:
-        message += await summoners_buffers_msg(dmf_summons)
+    if len(sellers.sellers[Services.DMF]) > 0:
+        message += await summoners_buffers_msg(sellers.sellers[Services.DMF])
     else:
         message += ' No summons available at this time'
     message += '\n'
@@ -1014,8 +921,8 @@ async def calc_dmf_msg():
 
 async def calc_wicker_msg():
     message = ':jack_o_lantern:  Wickerman (Tirisfal Glades) --- '
-    if len(wickerman_summons) > 0:
-        message += await summoners_buffers_msg(wickerman_summons)
+    if len(sellers.sellers[Services.WICKERMAN]) > 0:
+        message += await summoners_buffers_msg(sellers.sellers[Services.WICKERMAN])
     else:
         message += ' No summons available at this time'
     message += '\n'
@@ -1352,7 +1259,6 @@ async def populate_data_from_message(message):
         elif line.startswith(':heartpulse:  Hakkar --- '):
             #:heartpulse:  Hakkar --- 4:45pm (**Test**),  5:45pm (**Tester**)  --  Whisper  **Yisums** (1g)  'inv' for YI summons  --  Whisper  **Bbsums** (2g)  'inv' for BB summons
             global hakkar_drops
-            global hakkar_bb_summons
             strings = line.split(':heartpulse:  Hakkar --- ')
             parts = strings[1].split('  --  ')
             if parts[0] != TIME_UNKNOWN:
@@ -1366,82 +1272,74 @@ async def populate_data_from_message(message):
                 if 'YI summons' in summon_zone:
                     await process_summoners_buffers(sellers.sellers[Services.YI], summon_zone)
                 elif 'BB summons' in summon_zone:
-                    await process_summoners_buffers(hakkar_bb_summons, summon_zone)
+                    await process_summoners_buffers(sellers.sellers[Services.BB], summon_zone)
             if await calc_hakkar_msg() != line:
                 populate_success = False
                 print('hakkar')
         elif line.startswith(':wilted_rose:  BVSF --- '):
             #:wilted_rose:  BVSF --- 5:10pm -> 5:35pm -> 6:00pm  --  Whisper  **Bvsfsums** (5g)  'inv' for summons
             global bvsf_time
-            global bvsf_summons
             strings = line.split(':wilted_rose:  BVSF --- ')
             parts = strings[1].split('  --  ')
             timer = parts[0].split(' ->')
             bvsf_time = timer[0]
             if len(parts) > 1:
-                await process_summoners_buffers(bvsf_summons, parts[1])
+                await process_summoners_buffers(sellers.sellers[Services.BVSF], parts[1])
             if await calc_bvsf_msg() != line:
                 populate_success = False
                 print('bvsf')
         elif line.startswith(':crown:  DMT --- '):
             #:crown:  DMT --- Whisper  **Buffer** (5g)   |   **Betterbuffer** (10g w/summon + port)  'inv' for DM buffs  --  Whisper  **Dmtsums** (3g)  'inv' for summons
-            global dmt_buffs
-            global dmt_summons
             strings = line.split(':crown:  DMT --- ')
             parts = strings[1].split('  --  ')
             for type in parts:
                 if 'DM buffs' in type:
-                    await process_summoners_buffers(dmt_buffs, type)
+                    await process_summoners_buffers(sellers.sellers[Services.DMTB], type)
                 elif 'for summons' in type:
-                    await process_summoners_buffers(dmt_summons, type)
+                    await process_summoners_buffers(sellers.sellers[Services.DMTS], type)
             if await calc_dmt_msg() != line:
                 populate_success = False
                 print('dmt')
         elif line.startswith(':skull:  Naxx --- '):
             #:skull:  Naxx --- Whisper  **Naxxsum** (7g)  'inv' for summons
-            global naxx_summons
             strings = line.split(':skull:  Naxx --- ')
             if 'for summons' in strings[1]:
-                await process_summoners_buffers(naxx_summons, strings[1])
+                await process_summoners_buffers(sellers.sellers[Services.NAXX], strings[1])
             if await calc_naxx_msg() != line + '\n':
                 populate_success = False
                 print('naxx')
         elif line.startswith(':bug:  AQ Gates --- '):
             #:bug:  AQ Gates --- Whisper  **Aqsum** (7g)  'inv' for summons
-            global aq_summons
             strings = line.split(':bug:  AQ Gates --- ')
             if 'for summons' in strings[1]:
-                await process_summoners_buffers(aq_summons, strings[1])
+                await process_summoners_buffers(sellers.sellers[Services.AQ], strings[1])
             if await calc_aq_msg() != line + '\n':
                 populate_success = False
                 print('aq')
         elif line.startswith(':mountain:  BRM --- '):
             #:mountain:  BRM --- Whisper  **Brmsums** (5g or 10g w/FR :fire_extinguisher:)  'inv' for summons
-            global brm_summons
             strings = line.split(':mountain:  BRM --- ')
             if 'for summons' in strings[1]:
-                await process_summoners_buffers(brm_summons, strings[1])
+                await process_summoners_buffers(sellers.sellers[Services.BRM], strings[1])
             if await calc_brm_msg() != line + '\n':
                 populate_success = False
                 print('brm')
         elif line.startswith(':circus_tent:  DMF '):
             #:circus_tent:  DMF (Elwynn Forest) --- Whisper  **Dmfsums** (4g w/port)  'inv' for summons
             global dmf_location
-            global dmf_summons
             strings = line.split(' --- ')
             if '(' in strings[0]:
                 dmf_location = strings[0].split('(')[1].split(')')[0]
             if 'for summons' in strings[1]:
-                await process_summoners_buffers(dmf_summons, strings[1])
+                await process_summoners_buffers(sellers.sellers[Services.DMF], strings[1])
             if await calc_dmf_msg() != line + '\n':
                 populate_success = False
                 print('dmf')
         elif line.startswith(':jack_o_lantern:  Wickerman (Tirisfal Glades) --- '):
             #:jack_o_lantern:  Wickerman (Tirisfal Glades) --- Whisper  **Brmsums** (5g)  'inv' for summons
-            global wickerman_summons
             strings = line.split(':jack_o_lantern:  Wickerman (Tirisfal Glades) --- ')
             if 'for summons' in strings[1]:
-                await process_summoners_buffers(wickerman_summons, strings[1])
+                await process_summoners_buffers(sellers.sellers[Services.WICKERMAN], strings[1])
             if await calc_wicker_msg() != line + '\n':
                 populate_success = False
                 print('wickerman')
@@ -1584,18 +1482,9 @@ ony = DropBuffs(d=[])
 nef = DropBuffs(d=[])
 hakkar_drops = []
 sellers = Sellers()
-hakkar_bb_summons = []
 bvsf_time = TIME_UNKNOWN
 bvsf_update_count = 0
-bvsf_summons = []
-dmt_buffs = []
-dmt_summons = []
-naxx_summons = []
-aq_summons = []
-brm_summons = []
 dmf_location = ''
-dmf_summons = []
-wickerman_summons = []
 alliance = ''
 extra_message = ''
 
