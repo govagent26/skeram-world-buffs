@@ -1,5 +1,6 @@
 # bot.py
 import os
+import sys
 import random
 import re
 import platform
@@ -37,145 +38,44 @@ TIME_AFTER_DROP_TO_AUTO_REMOVE = 1
 bot = commands.Bot(command_prefix=['--', '—', '-'], case_insensitive=True)
 bot.remove_command('help')
 
-
-# class for rend/ony/nef buff times and droppers
-class DropBuffs:
-    def __init__(self, t=TIME_UNKNOWN, d=[]):
-        self.time = t
-        self.drops = d
-    
-    def find_dropper(self, name_or_time):
-        # fix any formatting issues and do .lower for comparison
-        clean_name_or_time = remove_command_surrounding_special_characters(name_or_time).lower()
-        for dropper in self.drops:
-            # try to find a matching dropper via name or time
-            if dropper.name.lower() == clean_name_or_time or dropper.time.lower() == clean_name_or_time:
-                return dropper
-        # if no match found, just return None
-        return None
-
-    def add_drop(self, time, name):
-        self.drops.append(Dropper(time, name))
-
-    def remove_drop(self, dropper):
-        self.drops.remove(dropper)
-
-# class for dropper info
-class Dropper:
-    def __init__(self, t=TIME_UNKNOWN, n='NA', a=''):
-        self.time = t
-        self.name = n
-        self.author = a
-
-# enum class for all possible summon/buff services sold
-class Services(enum.Enum):
-    YI = ServiceInfo("YI", ":heartpulse:", True, "Hakkar", calc_hakkar_msg)
-    BB = ServiceInfo("BB", ":heartpulse:", True, "Hakkar", calc_hakkar_msg)
-    BVSF = ServiceInfo("BVSF", ":heartpulse:", True, "BVSF", calc_bvsf_msg)
-    DMTB = ServiceInfo("DMT", ":heartpulse:", False, "DMT", calc_dmt_msg)
-    DMTS = ServiceInfo("DMT", ":heartpulse:", True, "DMT", calc_dmt_msg)
-    DMF = ServiceInfo("DMF", ":heartpulse:", True, "DMF", calc_dmf_msg)
-    BRM = ServiceInfo("BRM", ":heartpulse:", True, "BRM", calc_brm_msg)
-    AQ = ServiceInfo("AQ", ":heartpulse:", True, "AQ", calc_aq_msg)
-    NAXX = ServiceInfo("NAXX", ":heartpulse:", True, "Naxx", calc_naxx_msg)
-    WICKERMAN = ServiceInfo("WICKERMAN", ":heartpulse:", True, "Wickerman", calc_wicker_msg)
-
-class ServiceInfo:
-    def __init__(self, n, i, s, o, f):
-        self.name = n
-        self.icon = i
-        self.summoner = s
-        self.output_line_name = o
-        self.output_function = f
-
-# class for summons and (DMT) buff sellers
-class Sellers:
-    def __init__(self):
-        # initialize the sellers map
-        self.sellers = {new_list: [] for new_list in Services} 
-
-    def find_seller(self, service, name):
-        # fix any formatting issues and do .title for comparison
+# functions to add or update a service sellers info
+async def add_update_service_seller(ctx, service, name, note_array):
+    try:
+        # 1. Clean and format input
         clean_title_name = remove_command_surrounding_special_characters(name).title()
-        for seller in self.sellers[service]:
-            # try to find a matching seller via name
-            if seller.name == clean_title_name:
-                return seller
-        # if no match found, just return None
-        return None
-
-    def add_seller(self, service, name, message='', author_id=''):
-        self.sellers[service].append(SummonerBuffer(name, message, author_id))
-
-    def remove_seller(self, service, seller):
-        self.sellers[service].remove(seller)
-
-# class for seller info
-class SummonerBuffer:
-    def __init__(self, n=TIME_UNKNOWN, m='NA', a=''):
-        self.name = n
-        self.msg = m
-        self.author = a
-
-# variables to store the state of all droppers/sellers/etc...
-data_loaded = False
-playback_updates = True
-server_maintenance = ''
-rend = DropBuffs(d=[])
-ony = DropBuffs(d=[])
-nef = DropBuffs(d=[])
-hakkar_drops = []
-sellers = Sellers()
-hakkar_yi_summons = []
-hakkar_bb_summons = []
-bvsf_time = TIME_UNKNOWN
-bvsf_update_count = 0
-bvsf_summons = []
-dmt_buffs = []
-dmt_summons = []
-naxx_summons = []
-aq_summons = []
-brm_summons = []
-dmf_location = ''
-dmf_summons = []
-wickerman_summons = []
-alliance = ''
-extra_message = ''
-
-
-async def add_update_service_seller(ctx, service, name, *note):
-    # 1. Clean and format input
-    clean_title_name = remove_command_surrounding_special_characters(name).title()
-    message = await construct_args_message(note)
-    if len(message) > 30:
-        # cap message length to 30 characters to avoid too much spamming
-        message = message[:30]
-    # 2. Check if service already posted
-    seller = sellers.find_seller(service, name)
-    if seller == None:
-        # 2a. If not posted (find_seller == None) -> add flow
-        await add_service_seller(ctx, service, clean_title_name, message)
-    else:
-        # 2b. If posted (find_seller != None) -> update flow
-        await update_service_seller(ctx, service, seller, clean_title_name, message)
-
-    # debug ouput for testing/verification
-    if DEBUG:
-        for service in Services:
-            print("{0}={1}".format(service, sellers.sellers[service]))
+        message = await construct_args_message(note_array)
+        if len(message) > 30:
+            # cap message length to 30 characters to avoid too much spamming
+            message = message[:30]
+        # 2. Check if service already posted
+        seller = sellers.find_seller(service, name)
+        if seller == None:
+            # 2a. If not posted (find_seller == None) -> add flow
+            await add_service_seller(ctx, service, clean_title_name, message)
+        else:
+            # 2b. If posted (find_seller != None) -> update flow
+            await update_service_seller(ctx, service, seller, clean_title_name, message)
+    finally:
+        # debug ouput for testing/verification
+        if DEBUG:
+            for service in Services:
+                print("{0}={1}".format(service, sellers.sellers[service]))
+            sys.stdout.flush()
 
 async def add_service_seller(ctx, service, name, message):
+    service_info = service.value
     # 3. No rights check needed
     # 4. Add seller for service (add_seller)
     sellers.add_seller(service, name, message, ctx.message.author.id)
     # 5. Post update to world-buff-chat channel
     await post_in_world_buffs_chat_channel()
     # 6. Playback that update was done
-    await playback_message(ctx, '{0} buff timer updated to:\n{1}'.format(service.output_line_name, await service.output_function()))
+    await playback_message(ctx, '{0} buff timer updated to:\n{1}'.format(service_info.output_line_name, await service_info.output_function()))
     # 7. If update done via DM, post log record in wbc-commands channel
-    await post_update_in_wbc_channel(ctx, 'Added a {0} {1} {2}'.format(service.icon, service.name, "summoner" if service.summoner else "buffer"), name, message)
+    await post_update_in_wbc_channel(ctx, 'Added a {0} {1} {2}'.format(service_info.icon, service_info.name, "summoner" if service_info.summoner else "buffer"), name, [message])
 
 async def update_service_seller(ctx, service, seller, name, message):
+    service_info = service.value
     # 3. Check for rights, if a seller then author ID must match
     if not is_coordinator(ctx) and seller.author != '' and seller.author != ctx.message.author.id:
         # 3b. no rights -> playback message that no rights to update, return
@@ -186,39 +86,43 @@ async def update_service_seller(ctx, service, seller, name, message):
     # 5. Post update to world-buff-chat channels
     await post_in_world_buffs_chat_channel()
     # 6. Playback that update was done
-    await playback_message(ctx, '{0} buff timer updated to:\n{1}'.format(service.output_line_name, await service.output_function()))
+    await playback_message(ctx, '{0} buff timer updated to:\n{1}'.format(service_info.output_line_name, await service_info.output_function()))
     # 7. If update done via DM, post log record in wbc-commands channel
-    await post_update_in_wbc_channel(ctx, 'Updated message for a {0} {1} {2}'.format(service.icon, service.name, "summoner" if service.summoner else "buffer"), name, message)
+    await post_update_in_wbc_channel(ctx, 'Updated message for a {0} {1} {2}'.format(service_info.icon, service_info.name, "summoner" if service_info.summoner else "buffer"), name, [message])
 
+# function to remove a service sellers info
 async def remove_service_seller(ctx, service, name):
-    # 1. Clean and format input
-    clean_title_name = remove_command_surrounding_special_characters(name).title()
-    # 2. Check if service already posted
-    seller = sellers.find_seller(service, name)
-    if seller == None:
-        # 2b. If not posted -> playback message that does not exist
-        await playback_message(ctx, ':warning: User not currently posted - nothing to remove')
-        return
-    # 3. Check for rights, if a seller then author ID must match
-    if not is_coordinator(ctx) and seller.author != '' and seller.author != ctx.message.author.id:
-        # 3b. no rights -> playback message that no rights to remove, return
-        await playback_message(ctx, ':warning: Missing Rights - only the user who added this service can remove it')
-        return
-    # 4. Remove service listing
-    sellers.remove_seller(service, seller)
-    # 5. Post update to world-buff-chat channels
-    await post_in_world_buffs_chat_channel()
-    # 6. Playback that update was done
-    await playback_message(ctx, '{0} buff timer updated to:\n{1}'.format(service.output_line_name, await service.output_function()))
-    # 7. If update done via DM, post log record in wbc-commands channel
-    await post_update_in_wbc_channel(ctx, 'Removed a {0} {1} {2}'.format(service.icon, service.name, "summoner" if service.summoner else "buffer"), name, message)
+    try:
+        service_info = service.value
+        # 1. Clean and format input
+        clean_title_name = remove_command_surrounding_special_characters(name).title()
+        # 2. Check if service already posted
+        seller = sellers.find_seller(service, name)
+        if seller == None:
+            # 2b. If not posted -> playback message that does not exist
+            await playback_message(ctx, ':warning: User not currently posted - nothing to remove')
+            return
+        # 3. Check for rights, if a seller then author ID must match
+        if not is_coordinator(ctx) and seller.author != '' and seller.author != ctx.message.author.id:
+            # 3b. no rights -> playback message that no rights to remove, return
+            await playback_message(ctx, ':warning: Missing Rights - only the user who added this service can remove it')
+            return
+        # 4. Remove service listing
+        sellers.remove_seller(service, seller)
+        # 5. Post update to world-buff-chat channels
+        await post_in_world_buffs_chat_channel()
+        # 6. Playback that update was done
+        await playback_message(ctx, '{0} buff timer updated to:\n{1}'.format(service_info.output_line_name, await service_info.output_function()))
+        # 7. If update done via DM, post log record in wbc-commands channel
+        await post_update_in_wbc_channel(ctx, 'Removed a {0} {1} {2}'.format(service_info.icon, service_info.name, "summoner" if service_info.summoner else "buffer"), name)
+    finally:
+        # debug ouput for testing/verification
+        if DEBUG:
+            for service in Services:
+                print("{0}={1}".format(service, repr(sellers.sellers[service])))
+            sys.stdout.flush()
 
-    # debug ouput for testing/verification
-    if DEBUG:
-        for service in Services:
-            print("{0}={1}".format(service, sellers.sellers[service]))
-
-
+# functions to check for the user's role on the server
 def coordinator_or_seller(coordinator=True, seller=False):
     async def predicate(ctx):
         user_roles = check_for_role(ctx)
@@ -250,6 +154,7 @@ def is_coordinator(ctx):
     return False
 
 
+# start of defined bot commands/functions
 @bot.command(name="help", description="Prints this message of all commands - note when using commands, do not include < > [ ] - additionally all commands can be invoked using '--' or '-' or '—'")
 @coordinator_or_seller(seller=True)
 async def help(ctx):
@@ -307,10 +212,9 @@ async def clear_all_data(ctx):
     nef.time = TIME_UNKNOWN
     nef.drops = []
     global hakkar_drops
-    global hakkar_yi_summons
     global hakkar_bb_summons
     hakkar_drops = []
-    hakkar_yi_summons= []
+    sellers.clear_service[Services.YI]
     hakkar_bb_summons = []
     global bvsf_time
     global bvsf_summons
@@ -356,12 +260,11 @@ async def mockup_data(ctx):
     global nef
     nef.time = '7:45pm'
     global hakkar_drops
-    global hakkar_yi_summons
     global hakkar_bb_summons
     await add_dropper_no_post(hakkar_drops, 'Hakkardrop', '7:00pm')
     await add_dropper_no_post(hakkar_drops, 'Hakkarnotdrop', '9:15pm')
-    await add_summoner_buffer_no_post(hakkar_yi_summons, 'YIsums', ['5g'])
-    await add_summoner_buffer_no_post(hakkar_yi_summons, 'YIsummer', ['4g w/port'])
+    sellers.add_seller(Services.YI, 'YIsums', '5g', 1234567890)
+    sellers.add_seller(Services.YI, 'YIsummer', '4g w/port')
     await add_summoner_buffer_no_post(hakkar_bb_summons, 'BBsums', [''])
     global bvsf_time
     global bvsf_summons
@@ -717,10 +620,7 @@ class SummonerAddCommands(commands.Cog, name='Adds the <name> of a summoner and 
     @commands.command(name='yi-sums', aliases=generate_summoner_aliases("yi"), help='Adds a YI summoner with cost/message - example: --yi-sums Thatguy 5g w/port')
     @coordinator_or_seller(seller=True)
     async def add_hakkar_yi_summons(self, ctx, name, *note):
-        global hakkar_yi_summons
-        await add_summoner_buffer(ctx, hakkar_yi_summons, name, note, ctx.message.author.id)
-        await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
-        await post_update_in_wbc_channel(ctx, 'Addition/update to a :heartpulse: YI summoner', name, note)
+        await add_update_service_seller(ctx, Services.YI, name, note)
 
     @commands.command(name='bb-sums', aliases=generate_summoner_aliases("bb"), help='Adds a BB summoner with cost/message - example: --bb-sums Thatguy 5g w/port')
     @coordinator_or_seller(seller=True)
@@ -794,11 +694,7 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
     @commands.command(name='yi-sums-remove', aliases=generate_summoner_remove_aliases("yi"), brief='Remove user that was summoning to YI', help='Removes a YI summoner - example: --yi-sums-remove Thatguy')
     @coordinator_or_seller(seller=True)
     async def remove_hakkar_yi_summons(self, ctx, name):
-        global hakkar_yi_summons
-        if await has_rights_to_remove(ctx, hakkar_yi_summons, name):
-            if await remove_summoner_buffer(ctx, hakkar_yi_summons, name):
-                await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
-                await post_update_in_wbc_channel(ctx, 'Removal of a :heartpulse: YI summoner', name)
+        await remove_service_seller(ctx, Services.YI, name)
 
     @commands.command(name='bb-sums-remove', aliases=generate_summoner_remove_aliases("bb"), brief='Remove user that was summoning to BB', help='Removes a BB summoner - example: --bb-sums-remove Thatguy')
     @coordinator_or_seller(seller=True)
@@ -1049,8 +945,8 @@ async def calc_hakkar_msg():
         message += droppers
     else:
         message += TIME_UNKNOWN
-    if len(hakkar_yi_summons) > 0:
-        message += '  --  ' + await summoners_buffers_msg(hakkar_yi_summons, 'YI summons')
+    if len(sellers.sellers[Services.YI]) > 0:
+        message += '  --  ' + await summoners_buffers_msg(sellers.sellers[Services.YI], 'YI summons')
     if len(hakkar_bb_summons) > 0:
         message += '  --  ' + await summoners_buffers_msg(hakkar_bb_summons, 'BB summons')
     return message
@@ -1451,7 +1347,6 @@ async def populate_data_from_message(message):
         elif line.startswith(':heartpulse:  Hakkar --- '):
             #:heartpulse:  Hakkar --- 4:45pm (**Test**),  5:45pm (**Tester**)  --  Whisper  **Yisums** (1g)  'inv' for YI summons  --  Whisper  **Bbsums** (2g)  'inv' for BB summons
             global hakkar_drops
-            global hakkar_yi_summons
             global hakkar_bb_summons
             strings = line.split(':heartpulse:  Hakkar --- ')
             parts = strings[1].split('  --  ')
@@ -1464,7 +1359,7 @@ async def populate_data_from_message(message):
                 hakkar_drops.sort(key=sort_by_time)
             for summon_zone in parts[1:]:
                 if 'YI summons' in summon_zone:
-                    await process_summoners_buffers(hakkar_yi_summons, summon_zone)
+                    await process_summoners_buffers(sellers.sellers[Services.YI], summon_zone)
                 elif 'BB summons' in summon_zone:
                     await process_summoners_buffers(hakkar_bb_summons, summon_zone)
             if await calc_hakkar_msg() != line:
@@ -1583,6 +1478,118 @@ async def process_summoners_buffers(summoners_buffers, message):
         await add_summoner_buffer_no_post(summoners_buffers, parts[1], [summoner_note])
 
 
+
+# class for rend/ony/nef buff times and droppers
+class DropBuffs:
+    def __init__(self, t=TIME_UNKNOWN, d=[]):
+        self.time = t
+        self.drops = d
+    
+    def find_dropper(self, name_or_time):
+        # fix any formatting issues and do .lower for comparison
+        clean_name_or_time = remove_command_surrounding_special_characters(name_or_time).lower()
+        for dropper in self.drops:
+            # try to find a matching dropper via name or time
+            if dropper.name.lower() == clean_name_or_time or dropper.time.lower() == clean_name_or_time:
+                return dropper
+        # if no match found, just return None
+        return None
+
+    def add_drop(self, time, name):
+        self.drops.append(Dropper(time, name))
+
+    def remove_drop(self, dropper):
+        self.drops.remove(dropper)
+
+# class for dropper info
+class Dropper:
+    def __init__(self, t=TIME_UNKNOWN, n='NA', a=''):
+        self.time = t
+        self.name = n
+        self.author = a
+
+class ServiceInfo:
+    def __init__(self, n, i, s, o, f):
+        self.name = n
+        self.icon = i
+        self.summoner = s
+        self.output_line_name = o
+        self.output_function = f
+
+# enum class for all possible summon/buff services sold
+class Services(enum.Enum):
+    YI = ServiceInfo("YI", ":heartpulse:", True, "Hakkar", calc_hakkar_msg)
+    BB = ServiceInfo("BB", ":heartpulse:", True, "Hakkar", calc_hakkar_msg)
+    BVSF = ServiceInfo("BVSF", ":heartpulse:", True, "BVSF", calc_bvsf_msg)
+    DMTB = ServiceInfo("DMT", ":heartpulse:", False, "DMT", calc_dmt_msg)
+    DMTS = ServiceInfo("DMT", ":heartpulse:", True, "DMT", calc_dmt_msg)
+    DMF = ServiceInfo("DMF", ":heartpulse:", True, "DMF", calc_dmf_msg)
+    BRM = ServiceInfo("BRM", ":heartpulse:", True, "BRM", calc_brm_msg)
+    AQ = ServiceInfo("AQ", ":heartpulse:", True, "AQ", calc_aq_msg)
+    NAXX = ServiceInfo("NAXX", ":heartpulse:", True, "Naxx", calc_naxx_msg)
+    WICKERMAN = ServiceInfo("WICKERMAN", ":heartpulse:", True, "Wickerman", calc_wicker_msg)
+
+# class for summons and (DMT) buff sellers
+class Sellers:
+    def __init__(self):
+        # initialize the sellers map
+        self.sellers = {new_list: [] for new_list in Services} 
+
+    def find_seller(self, service, name):
+        # fix any formatting issues and do .title for comparison
+        clean_title_name = remove_command_surrounding_special_characters(name).title()
+        for seller in self.sellers[service]:
+            # try to find a matching seller via name
+            if seller.name.title() == clean_title_name:
+                return seller
+        # if no match found, just return None
+        return None
+
+    def add_seller(self, service, name, message='', author_id=''):
+        self.sellers[service].append(SummonerBuffer(name, message, author_id))
+
+    def remove_seller(self, service, seller):
+        self.sellers[service].remove(seller)
+
+    def clear_service(self, service):
+        self.sellers[service] = []
+
+# class for seller info
+class SummonerBuffer:
+    def __init__(self, n=TIME_UNKNOWN, m='NA', a=''):
+        self.name = n
+        self.msg = m
+        self.author = a
+
+    def __repr__(self):
+        return "Name:{0}---Message:{1}---AuthorID:{2}".format(self.name, self.msg, self.author)
+
+# variables to store the state of all droppers/sellers/etc...
+data_loaded = False
+playback_updates = True
+server_maintenance = ''
+rend = DropBuffs(d=[])
+ony = DropBuffs(d=[])
+nef = DropBuffs(d=[])
+hakkar_drops = []
+sellers = Sellers()
+hakkar_bb_summons = []
+bvsf_time = TIME_UNKNOWN
+bvsf_update_count = 0
+bvsf_summons = []
+dmt_buffs = []
+dmt_summons = []
+naxx_summons = []
+aq_summons = []
+brm_summons = []
+dmf_location = ''
+dmf_summons = []
+wickerman_summons = []
+alliance = ''
+extra_message = ''
+
+
+# register all cog commands with the bot
 bot.add_cog(BuffAvailTimeCommands(bot))
 bot.add_cog(BVSFBuffCommands(bot))
 bot.add_cog(BuffDropAddCommands(bot))
@@ -1595,4 +1602,5 @@ bot.add_cog(ServerMaintenanceCommands(bot))
 bot.add_cog(GriefingCommands(bot))
 bot.add_cog(ExtraMessageCommands(bot))
 
+# run the bot!!
 bot.run(TOKEN)
