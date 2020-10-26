@@ -38,6 +38,7 @@ TIME_AFTER_DROP_TO_AUTO_REMOVE = 1
 bot = commands.Bot(command_prefix=['--', '—', '-'], case_insensitive=True)
 bot.remove_command('help')
 
+
 # functions to add or update a service sellers info
 async def add_update_service_seller(ctx, service, name, note_array):
     try:
@@ -141,7 +142,7 @@ def check_for_role(ctx):
             user_roles.append(WORLD_BUFF_COORDINATOR)
     # debug ouput for testing/verification
     if DEBUG:
-        print("Roles={1}".format(user_roles)
+        print("Roles={0}".format(user_roles))
         sys.stdout.flush()
     return user_roles
 
@@ -1481,7 +1482,7 @@ async def process_summoners_buffers(summoners_buffers, message):
             summoner_note = parts[2][index_start:index_end]
         await add_summoner_buffer_no_post(summoners_buffers, parts[1], [summoner_note])
 
-async def debug_print_services:
+async def debug_print_services():
     # debug ouput for testing/verification
     if DEBUG:
         for service in Services:
