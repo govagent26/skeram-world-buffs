@@ -57,10 +57,7 @@ async def add_update_service_seller(ctx, service, name, note_array):
             await update_service_seller(ctx, service, seller, clean_title_name, message)
     finally:
         # debug ouput for testing/verification
-        if DEBUG:
-            for service in Services:
-                print("{0}={1}".format(service, sellers.sellers[service]))
-            sys.stdout.flush()
+        await debug_print_services()
 
 async def add_service_seller(ctx, service, name, message):
     service_info = service.value
@@ -117,10 +114,7 @@ async def remove_service_seller(ctx, service, name):
         await post_update_in_wbc_channel(ctx, 'Removed a {0} {1} {2}'.format(service_info.icon, service_info.name, "summoner" if service_info.summoner else "buffer"), name)
     finally:
         # debug ouput for testing/verification
-        if DEBUG:
-            for service in Services:
-                print("{0}={1}".format(service, repr(sellers.sellers[service])))
-            sys.stdout.flush()
+        await debug_print_services()
 
 # functions to check for the user's role on the server
 def coordinator_or_seller(coordinator=True, seller=False):
@@ -145,6 +139,10 @@ def check_for_role(ctx):
             user_roles.append(WORLD_BUFF_SELLER)
         if WORLD_BUFF_COORDINATOR_ROLE_ID == role.id:
             user_roles.append(WORLD_BUFF_COORDINATOR)
+    # debug ouput for testing/verification
+    if DEBUG:
+        print("Roles={1}".format(user_roles)
+        sys.stdout.flush()
     return user_roles
 
 def is_coordinator(ctx):
@@ -242,6 +240,8 @@ async def clear_all_data(ctx):
     extra_message = ''
     await post_in_world_buffs_chat_channel()
     await ctx.send('All data cleared')
+    # debug ouput for testing/verification
+    await debug_print_services()
 
 @bot.command(name="mockup-data-confirm", description="Populates all elements of the message with dummy data")
 async def mockup_data(ctx):
@@ -293,6 +293,8 @@ async def mockup_data(ctx):
     extra_message = 'Extra message for ........'
     await post_in_world_buffs_chat_channel()
     await ctx.send('Data mocked up')
+    # debug ouput for testing/verification
+    await debug_print_services()
 
 
 @bot.event
@@ -331,6 +333,8 @@ async def on_ready():
     finally:
         global data_loaded
         data_loaded = True
+        # debug ouput for testing/verification
+        await debug_print_services()
     check_for_message_updates.start()
 
 
@@ -1477,6 +1481,12 @@ async def process_summoners_buffers(summoners_buffers, message):
             summoner_note = parts[2][index_start:index_end]
         await add_summoner_buffer_no_post(summoners_buffers, parts[1], [summoner_note])
 
+async def debug_print_services:
+    # debug ouput for testing/verification
+    if DEBUG:
+        for service in Services:
+            print("{0}={1}".format(service, sellers.sellers[service]))
+        sys.stdout.flush()
 
 
 # class for rend/ony/nef buff times and droppers
