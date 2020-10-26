@@ -190,7 +190,7 @@ async def playback(ctx, status):
     await ctx.send('Playback is ' + ('enabled' if status == 'on' else 'disabled'))
 
 @bot.command(name="clear-all-data-confirm", description="Purges all saved data")
-async def clear_all_data(ctx):
+async def clear_data(ctx):
     if (ctx.message.author.id != MASTER_ID):
         raise commands.CommandNotFound()
         return
@@ -199,37 +199,7 @@ async def clear_all_data(ctx):
     if len(messages) > 0 and messages[0].author == bot.user:
         message = await world_buff_channel.fetch_message(messages[0].id)
         await ctx.send('**Data cleared...**\nPrevious Message:\n' + message.content)
-    global server_maintenance
-    server_maintenance = ''
-    global rend
-    rend.time = TIME_UNKNOWN
-    rend.drops = []
-    global ony
-    ony.time = TIME_UNKNOWN
-    ony.drops = []
-    global nef
-    nef.time = TIME_UNKNOWN
-    nef.drops = []
-    global hakkar_drops
-    hakkar_drops = []
-    sellers.clear_service[Services.YI]
-    sellers.clear_service[Services.BB]
-    global bvsf_time
-    bvsf_time = TIME_UNKNOWN
-    sellers.clear_service[Services.BVSF]
-    sellers.clear_service[Services.DMTB]
-    sellers.clear_service[Services.DMTS]
-    sellers.clear_service[Services.NAXX]
-    sellers.clear_service[Services.AQ]
-    sellers.clear_service[Services.BRM]
-    global dmf_location
-    dmf_location = ''
-    sellers.clear_service[Services.DMF]
-    sellers.clear_service[Services.WICKERMAN]
-    global alliance
-    alliance = ''
-    global extra_message
-    extra_message = ''
+    await clear_all_data()
     await post_in_world_buffs_chat_channel()
     await ctx.send('All data cleared')
     # debug ouput for testing/verification
@@ -240,6 +210,9 @@ async def mockup_data(ctx):
     if (ctx.message.author.id != MASTER_ID):
         raise commands.CommandNotFound()
         return
+    # clear all data prior to populating with dummy data
+    await clear_all_data()
+    # populate with dummy data
     global server_maintenance
     server_maintenance = 'SERVER IS UP'
     global rend
@@ -1270,9 +1243,9 @@ async def populate_data_from_message(message):
                 hakkar_drops.sort(key=sort_by_time)
             for summon_zone in parts[1:]:
                 if 'YI summons' in summon_zone:
-                    await process_summoners_buffers(sellers.sellers[Services.YI], summon_zone)
+                    await process_summoners_buffers(Services.YI, summon_zone)
                 elif 'BB summons' in summon_zone:
-                    await process_summoners_buffers(sellers.sellers[Services.BB], summon_zone)
+                    await process_summoners_buffers(Services.BB, summon_zone)
             if await calc_hakkar_msg() != line:
                 populate_success = False
                 print('hakkar')
@@ -1284,7 +1257,7 @@ async def populate_data_from_message(message):
             timer = parts[0].split(' ->')
             bvsf_time = timer[0]
             if len(parts) > 1:
-                await process_summoners_buffers(sellers.sellers[Services.BVSF], parts[1])
+                await process_summoners_buffers(Services.BVSF, parts[1])
             if await calc_bvsf_msg() != line:
                 populate_success = False
                 print('bvsf')
@@ -1294,9 +1267,9 @@ async def populate_data_from_message(message):
             parts = strings[1].split('  --  ')
             for type in parts:
                 if 'DM buffs' in type:
-                    await process_summoners_buffers(sellers.sellers[Services.DMTB], type)
+                    await process_summoners_buffers(Services.DMTB, type)
                 elif 'for summons' in type:
-                    await process_summoners_buffers(sellers.sellers[Services.DMTS], type)
+                    await process_summoners_buffers(Services.DMTS, type)
             if await calc_dmt_msg() != line:
                 populate_success = False
                 print('dmt')
@@ -1304,7 +1277,7 @@ async def populate_data_from_message(message):
             #:skull:  Naxx --- Whisper  **Naxxsum** (7g)  'inv' for summons
             strings = line.split(':skull:  Naxx --- ')
             if 'for summons' in strings[1]:
-                await process_summoners_buffers(sellers.sellers[Services.NAXX], strings[1])
+                await process_summoners_buffers(Services.NAXX, strings[1])
             if await calc_naxx_msg() != line + '\n':
                 populate_success = False
                 print('naxx')
@@ -1312,7 +1285,7 @@ async def populate_data_from_message(message):
             #:bug:  AQ Gates --- Whisper  **Aqsum** (7g)  'inv' for summons
             strings = line.split(':bug:  AQ Gates --- ')
             if 'for summons' in strings[1]:
-                await process_summoners_buffers(sellers.sellers[Services.AQ], strings[1])
+                await process_summoners_buffers(Services.AQ, strings[1])
             if await calc_aq_msg() != line + '\n':
                 populate_success = False
                 print('aq')
@@ -1320,7 +1293,7 @@ async def populate_data_from_message(message):
             #:mountain:  BRM --- Whisper  **Brmsums** (5g or 10g w/FR :fire_extinguisher:)  'inv' for summons
             strings = line.split(':mountain:  BRM --- ')
             if 'for summons' in strings[1]:
-                await process_summoners_buffers(sellers.sellers[Services.BRM], strings[1])
+                await process_summoners_buffers(Services.BRM, strings[1])
             if await calc_brm_msg() != line + '\n':
                 populate_success = False
                 print('brm')
@@ -1331,7 +1304,7 @@ async def populate_data_from_message(message):
             if '(' in strings[0]:
                 dmf_location = strings[0].split('(')[1].split(')')[0]
             if 'for summons' in strings[1]:
-                await process_summoners_buffers(sellers.sellers[Services.DMF], strings[1])
+                await process_summoners_buffers(Services.DMF, strings[1])
             if await calc_dmf_msg() != line + '\n':
                 populate_success = False
                 print('dmf')
@@ -1339,7 +1312,7 @@ async def populate_data_from_message(message):
             #:jack_o_lantern:  Wickerman (Tirisfal Glades) --- Whisper  **Brmsums** (5g)  'inv' for summons
             strings = line.split(':jack_o_lantern:  Wickerman (Tirisfal Glades) --- ')
             if 'for summons' in strings[1]:
-                await process_summoners_buffers(sellers.sellers[Services.WICKERMAN], strings[1])
+                await process_summoners_buffers(Services.WICKERMAN, strings[1])
             if await calc_wicker_msg() != line + '\n':
                 populate_success = False
                 print('wickerman')
@@ -1369,7 +1342,7 @@ async def process_droppers(droppers, droppers_raw, drop_time):
         else:
             await add_dropper_no_post(droppers, drop.split('**')[1], drop_time)
 
-async def process_summoners_buffers(summoners_buffers, message):
+async def process_summoners_buffers(service, message):
     summoners_buffers_raw = message.split(' | ')
     for summoner_buffer in summoners_buffers_raw:
         parts = summoner_buffer.split('**')
@@ -1378,10 +1351,35 @@ async def process_summoners_buffers(summoners_buffers, message):
             index_start = parts[2].index('(') + 1
             index_end = parts[2].rindex(')')
             summoner_note = parts[2][index_start:index_end]
-        await add_summoner_buffer_no_post(summoners_buffers, parts[1], [summoner_note])
+        sellers.add_seller(service, parts[1], summoner_note)
 
+# clear all stored data
+async def clear_all_data():
+    global server_maintenance
+    server_maintenance = ''
+    global rend
+    rend = DropBuffs(d=[])
+    global ony
+    ony = DropBuffs(d=[])
+    global nef
+    nef = DropBuffs(d=[])
+    global hakkar_drops
+    hakkar_drops = []
+    global sellers
+    sellers = Sellers()
+    global bvsf_time
+    bvsf_time = TIME_UNKNOWN
+    global bvsf_update_count
+    bvsf_update_count = 0
+    global dmf_location
+    dmf_location = ''
+    global alliance
+    alliance = ''
+    global extra_message
+    extra_message = ''
+
+# debug ouput for testing/verification
 async def debug_print_services():
-    # debug ouput for testing/verification
     if DEBUG:
         for service in Services:
             print("{0}={1}".format(service, sellers.sellers[service]))
