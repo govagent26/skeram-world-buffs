@@ -1109,6 +1109,7 @@ async def update_world_buffs_chat_channel():
     else:
         await channel.send(await get_buff_times())
 
+# used to sort drops by time
 def sort_by_time(dropper):
     utc = timezone('UTC')
     now = utc.localize(datetime.utcnow())
