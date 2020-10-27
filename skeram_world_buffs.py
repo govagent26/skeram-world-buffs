@@ -22,7 +22,10 @@ WBC_CHANNEL_ID = int(os.getenv('WBC_CHANNEL_ID'))
 WORLD_BUFF_COORDINATOR_ROLE_ID = int(os.getenv('WORLD_BUFF_COORDINATOR_ROLE_ID'))
 WORLD_BUFF_SELLER_ROLE_ID = int(os.getenv('WORLD_BUFF_SELLER_ROLE_ID'))
 MASTER_ID = int(os.getenv('MASTER_ID'))
+# debug flag for troubleshooting
 DEBUG = True if os.getenv('DEBUG') == 'true' else False
+# setting to bypass DM rights check and assume seller
+DM_BYPASS_ASSUME_SELLER = True if os.getenv('DM_BYPASS_ASSUME_SELLER') == 'true' else False
 
 PRINT_TIME_FORMAT = '%-I:%M%p' if platform.system() != 'Windows' else '%#I:%M%p'
 
@@ -34,8 +37,12 @@ WORLD_BUFF_SELLER = 'WBS'
 # minutes after a drop to be auto-removed
 TIME_AFTER_DROP_TO_AUTO_REMOVE = 1
 
+# setup intents to get member data for DMs
+intents = discord.Intents.default()
+intents.members = True
+
 # initialize the discord bot
-bot = commands.Bot(command_prefix=['--', '—', '-'], case_insensitive=True)
+bot = commands.Bot(command_prefix=['--', '—', '-'], case_insensitive=True, intents=intents)
 bot.remove_command('help')
 
 
@@ -132,26 +139,31 @@ def coordinator_or_seller(coordinator=True, seller=False):
 def check_for_role(ctx):
     user_roles = []
     author = ''
-    if (ctx.message.guild != None):
-        # from server, get user info from message
-        author = ctx.message.author
-    else:
-        # TEMPORARY TO BYPASS DISCORD API ISSUE - hope nothing bad happens...
-        user_roles.append(WORLD_BUFF_SELLER)
-        return user_roles
-        # DM, need to get server and get user info on server
-        skeram_server = bot.get_guild(SKERAM_SERVER_ID)
-        author = discord.utils.get(skeram_server.members, id=ctx.message.author.id)
-    # check for coordinator / seller roles
-    for role in author.roles:
-        if WORLD_BUFF_SELLER_ROLE_ID == role.id:
-            user_roles.append(WORLD_BUFF_SELLER)
-        if WORLD_BUFF_COORDINATOR_ROLE_ID == role.id:
-            user_roles.append(WORLD_BUFF_COORDINATOR)
-    # debug ouput for testing/verification
-    if DEBUG:
-        print("Roles={0}".format(user_roles))
-        sys.stdout.flush()
+    try:
+        if (ctx.message.guild != None):
+            # from server, get user info from message
+            author = ctx.message.author
+        else:
+            if DM_BYPASS_ASSUME_SELLER:
+                # in case need to bypass the DM rights check, assume seller
+                user_roles.append(WORLD_BUFF_SELLER)
+                return user_roles
+            # DM, need to get server and get user info on server
+            skeram_server = bot.get_guild(SKERAM_SERVER_ID)
+            author = skeram_server.get_member(ctx.message.author.id)
+            #author = discord.utils.get(skeram_server.members, id=ctx.message.author.id)
+        # check for coordinator / seller roles
+        for role in author.roles:
+            if WORLD_BUFF_SELLER_ROLE_ID == role.id:
+                user_roles.append(WORLD_BUFF_SELLER)
+            if WORLD_BUFF_COORDINATOR_ROLE_ID == role.id:
+                user_roles.append(WORLD_BUFF_COORDINATOR)
+    finally:
+        # debug ouput for testing/verification
+        if DEBUG:
+            print("Author={0}".format(author))
+            print("Roles={0}".format(user_roles))
+            sys.stdout.flush()
     return user_roles
 
 def is_coordinator(ctx):
