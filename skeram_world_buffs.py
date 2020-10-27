@@ -296,6 +296,9 @@ async def on_ready():
         data_loaded = True
         # debug ouput for testing/verification
         await debug_print_services()
+        # always print when up and running, debug or not
+        print("BOT STARTED UP")
+        sys.stdout.flush()
     check_for_message_updates.start()
 
 
