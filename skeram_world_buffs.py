@@ -271,6 +271,9 @@ async def on_command_error(ctx, error):
 @bot.event
 async def on_ready():
     try:
+        # always print when first loading up, debug or not
+        print("BOT WAKING UP")
+        sys.stdout.flush()
         # find the last message and see if it was from the bot to load data
         world_buff_channel = bot.get_channel(WORLD_BUFF_CHANNEL_ID)
         wbc_channel = bot.get_channel(WBC_CHANNEL_ID)
@@ -297,7 +300,7 @@ async def on_ready():
         # debug ouput for testing/verification
         await debug_print_services()
         # always print when up and running, debug or not
-        print("BOT STARTED UP")
+        print("BOT STARTED UP AND READY")
         sys.stdout.flush()
     check_for_message_updates.start()
 
