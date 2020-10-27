@@ -136,6 +136,9 @@ def check_for_role(ctx):
         # from server, get user info from message
         author = ctx.message.author
     else:
+        # TEMPORARY TO BYPASS DISCORD API ISSUE - hope nothing bad happens...
+        user_roles.append(WORLD_BUFF_SELLER)
+        return user_roles
         # DM, need to get server and get user info on server
         skeram_server = bot.get_guild(SKERAM_SERVER_ID)
         author = discord.utils.get(skeram_server.members, id=ctx.message.author.id)
