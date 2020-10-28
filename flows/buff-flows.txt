@@ -1,0 +1,12 @@
+##
+##
+## Buffs Flow (change time)
+##  1. Clean and format input
+##  2. Check if any drops posted match existing time
+##  2a. If drop found -> remove dropper
+##  3. Update time
+##  4. Post update to world-buff-chat channel
+##  5. Playback that update was done
+##  6. If update done via DM, post log record in wbc-commands channel
+##
+##

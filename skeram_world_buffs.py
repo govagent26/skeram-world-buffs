@@ -129,6 +129,30 @@ async def remove_service_seller(ctx, service, name):
         await debug_print_services()
 
 
+# function to update a buff reset time
+async def update_buff_time(ctx, buff, time):
+    try:
+        #  1. Clean and format input
+        clean_time = remove_command_surrounding_special_characters(time).title()
+        #  2. Check if any drops posted match existing time
+        dropper = buff.find_dropper(clean_time)
+        #  2a. If drop found -> remove dropper
+        if dropper != None:
+            await ctx.send('Dropper found whose time matched old time, assuming a drop was done and removing dropper:\n  {0.time} (**{0.name}**)'.format(dropper))
+            buff.remove_drop(dropper)
+        #  3. Update time
+        buff.time = clean_time
+        #  4. Post update to world-buff-chat channel
+        await post_in_world_buffs_chat_channel()
+        #  5. Playback that update was donea
+        await playback_message(ctx, 'Buff timer updated to:\n' + await buff.output_function())
+        #  6. If update done via DM, post log record in wbc-commands channel
+        ## FUTURE - TODO
+    finally:
+        # debug ouput for testing/verification
+        await debug_print_drop_buffs()
+
+
 # functions to check for the user's role on the server
 def coordinator_or_seller(coordinator=True, seller=False):
     async def predicate(ctx):
@@ -1336,12 +1360,9 @@ async def process_summoners_buffers(service, message):
 async def clear_all_data():
     global server_maintenance
     server_maintenance = ''
-    global rend
-    rend = DropBuffs(d=[])
-    global ony
-    ony = DropBuffs(d=[])
-    global nef
-    nef = DropBuffs(d=[])
+    rend.clear()
+    ony.clear()
+    nef.clear()
     global hakkar_drops
     hakkar_drops = []
     global sellers
@@ -1364,12 +1385,19 @@ async def debug_print_services():
             print("{0}={1}".format(service, sellers.sellers[service]))
         sys.stdout.flush()
 
+# debug ouput for testing/verification
+async def debug_print_drop_buffs(buff):
+    if DEBUG:
+        print(buff)
+        sys.stdout.flush()
+
 
 # class for rend/ony/nef buff times and droppers
 class DropBuffs:
-    def __init__(self, t=TIME_UNKNOWN, d=[]):
+    def __init__(self, t=TIME_UNKNOWN, d=[], o=None):
         self.time = t
         self.drops = d
+        self.output_function = o
     
     def find_dropper(self, name_or_time):
         # fix any formatting issues and do .lower for comparison
@@ -1387,12 +1415,22 @@ class DropBuffs:
     def remove_drop(self, dropper):
         self.drops.remove(dropper)
 
+    def clear(self):
+        self.time = TIME_UNKNOWN
+        self.drops = []
+        
+    def __repr__(self):
+        return "Time:{0}---Drops:{1}".format(self.time, self.drops)
+
 # class for dropper info
 class Dropper:
     def __init__(self, t=TIME_UNKNOWN, n='NA', a=''):
         self.time = t
         self.name = n
         self.author = a
+
+    def __repr__(self):
+        return "Time:{0}---Name:{1}---AuthorID:{2}".format(self.time, self.name, self.author)
 
 class ServiceInfo:
     def __init__(self, n, i, s, o, f):
@@ -1454,9 +1492,9 @@ class SummonerBuffer:
 data_loaded = False
 playback_updates = True
 server_maintenance = ''
-rend = DropBuffs(d=[])
-ony = DropBuffs(d=[])
-nef = DropBuffs(d=[])
+rend = DropBuffs(d=[], o=calc_rend_msg)
+ony = DropBuffs(d=[], o=calc_ony_msg)
+nef = DropBuffs(d=[], o=calc_nef_msg)
 hakkar_drops = []
 sellers = Sellers()
 bvsf_time = TIME_UNKNOWN
