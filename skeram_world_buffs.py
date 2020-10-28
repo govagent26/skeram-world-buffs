@@ -152,6 +152,29 @@ async def update_buff_time(ctx, buff, time):
         # debug ouput for testing/verification
         await debug_print_drop_buffs(buff)
 
+# function to remove a buff dropper
+async def remove_buff_dropper(ctx, buff, name_or_time):
+    try:
+        # 1. Clean and format input
+        clean_name_or_time = await format_time(remove_command_surrounding_special_characters(name_or_time))
+        # 2. Check if any drops posted match via name or time
+        dropper = buff.find_dropper(clean_name_or_time)
+        if dropper == None:
+            # 2b. If drop not found -> playback message that does not exist
+            await playback_message(ctx, ':warning: Dropper not currently posted - nothing to remove')
+            return
+        # 3. Remove dropper
+        buff.remove_drop(dropper)
+        # 4. Post update to world-buff-chat channels
+        await post_in_world_buffs_chat_channel()
+        # 5. Playback that update was done
+        await playback_message(ctx, '{0} buff timer updated to:\n{1}'.format(buff.name, await buff.output_function()))
+        # 6. If update done via DM, post log record in wbc-commands channel
+        ## FUTURE - TODO
+    finally:
+        # debug ouput for testing/verification
+        await debug_print_drop_buffs(buff)
+
 
 # functions to check for the user's role on the server
 def coordinator_or_seller(coordinator=True, seller=False):
@@ -586,23 +609,17 @@ class BuffDropRemoveCommands(commands.Cog, name='Removes a buff dropper with mat
     @commands.command(name='rend-drop-remove', aliases=['rend-drops-remove'], brief='Remove user dropping rend', help='Removes a rend confirmed dropper - example: --rend-drop-remove Thatguy')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def remove_rend_dropper(self, ctx, name_or_time):
-        global rend
-        if await remove_dropper(ctx, rend.drops, name_or_time):
-            await playback_message(ctx, 'Rend buff timer updated to:\n' + await calc_rend_msg())
+        await remove_buff_dropper(ctx, rend, name_or_time)
 
     @commands.command(name='ony-drop-remove', aliases=['ony-drops-remove'], brief='Remove user dropping ony', help='Removes a ony confirmed dropper - example: --ony-drop-remove Thatguy')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def remove_ony_dropper(self, ctx, name_or_time):
-        global ony
-        if await remove_dropper(ctx, ony.drops, name_or_time):
-            await playback_message(ctx, 'Ony buff timer updated to:\n' + await calc_ony_msg())
+        await remove_buff_dropper(ctx, ony, name_or_time)
 
     @commands.command(name='nef-drop-remove', aliases=['nef-drops-remove'], brief='Remove user dropping nef', help='Removes a nef confirmed dropper - example: --nef-drop-remove Thatguy')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def remove_nef_dropper(self, ctx, name_or_time):
-        global nef
-        if await remove_dropper(ctx, nef.drops, name_or_time):
-            await playback_message(ctx, 'Nef buff timer updated to:\n' + await calc_nef_msg())
+        await remove_buff_dropper(ctx, nef, name_or_time)
 
     @commands.command(name='hakkar-drop-remove', aliases=['hakkar-drops-remove', 'yi-drop-remove', 'yi-drops-remove'], brief='Remove user dropping hakkar', help='Removes a hakkar confirmed dropper - example: --hakkar-drop-remove Thatguy')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)

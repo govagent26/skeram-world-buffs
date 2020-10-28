@@ -10,3 +10,13 @@
 ##  6. If update done via DM, post log record in wbc-commands channel
 ##
 ##
+## Buffs Flow (remove dropper)
+##  1. Clean and format input
+##  2. Check if any drops posted match via name or time
+##  2b. If drop not found -> playback message that does not exist
+##  3. Remove dropper
+##  4. Post update to world-buff-chat channels
+##  5. Playback that update was done
+##  6. If update done via DM, post log record in wbc-commands channel
+##
+##
