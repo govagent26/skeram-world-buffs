@@ -133,9 +133,9 @@ async def remove_service_seller(ctx, service, name):
 async def update_buff_time(ctx, buff, time):
     try:
         #  1. Clean and format input
-        clean_time = remove_command_surrounding_special_characters(time).title()
+        clean_time = await format_time(remove_command_surrounding_special_characters(time))
         #  2. Check if any drops posted match existing time
-        dropper = buff.find_dropper(clean_time)
+        dropper = buff.find_dropper(buff.time)
         #  2a. If drop found -> remove dropper
         if dropper != None:
             await ctx.send('Dropper found whose time matched old time, assuming a drop was done and removing dropper:\n  {0.time} (**{0.name}**)'.format(dropper))
@@ -145,12 +145,12 @@ async def update_buff_time(ctx, buff, time):
         #  4. Post update to world-buff-chat channel
         await post_in_world_buffs_chat_channel()
         #  5. Playback that update was donea
-        await playback_message(ctx, 'Buff timer updated to:\n' + await buff.output_function())
+        await playback_message(ctx, '{0} buff timer updated to:\n{1}'.format(buff.name, await buff.output_function()))
         #  6. If update done via DM, post log record in wbc-commands channel
         ## FUTURE - TODO
     finally:
         # debug ouput for testing/verification
-        await debug_print_drop_buffs()
+        await debug_print_drop_buffs(buff)
 
 
 # functions to check for the user's role on the server
@@ -499,29 +499,17 @@ class BuffAvailTimeCommands(commands.Cog, name='Specifies the <time> when the bu
     @commands.command(name='rend', aliases=['rend-time'], brief='Set time for when rend is open/off CD', help='Sets the next available time rend buff is open - example: --rend 2:54pm')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_rend_time(self, ctx, time):
-        global rend
-        await check_droppers_for_removal_on_drop(ctx, rend)
-        rend.time = await format_time(remove_command_surrounding_special_characters(time))
-        await post_in_world_buffs_chat_channel()
-        await playback_message(ctx, 'Rend buff timer updated to:\n' + await calc_rend_msg())
+        await update_buff_time(ctx, rend, time)
 
     @commands.command(name='ony', aliases=['ony-time'], brief='Set time for when ony is open/off CD', help='Sets the next available time ony buff is open - example: --ony 2:54pm')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_ony_time(self, ctx, time):
-        global ony
-        await check_droppers_for_removal_on_drop(ctx, ony)
-        ony.time = await format_time(remove_command_surrounding_special_characters(time))
-        await post_in_world_buffs_chat_channel()
-        await playback_message(ctx, 'Ony buff timer updated to:\n' + await calc_ony_msg())
+        await update_buff_time(ctx, ony, time)
 
     @commands.command(name='nef', aliases=['nef-time'], brief='Set time for when nef is open/off CD', help='Sets the next available time nef buff is open - example: --nef 2:54pm')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_nef_time(self, ctx, time):
-        global nef
-        await check_droppers_for_removal_on_drop(ctx, nef)
-        nef.time = await format_time(remove_command_surrounding_special_characters(time))
-        await post_in_world_buffs_chat_channel()
-        await playback_message(ctx, 'Nef buff timer updated to:\n' + await calc_nef_msg())
+        await update_buff_time(ctx, nef, time)
 
 
 class BVSFBuffCommands(commands.Cog, name = 'Sets the next <time> the BVSF flower should be up or clears it'):
@@ -1069,15 +1057,6 @@ async def post_update_in_wbc_channel(ctx, embed_desc, name=None, note=None, head
             embed.add_field(name="Note/Message", value=note_str, inline=True)
         await wbc_channel.send(embed=embed)
 
-async def check_droppers_for_removal_on_drop(ctx, drop_buffs):
-    for drop in drop_buffs.drops:
-        if drop.time == drop_buffs.time:
-            #old time found, remove dropper and post message
-            await ctx.send('Dropper found whose time matched old time, assuming a drop was done and removing dropper:\n  {0.time} (**{0.name}**)'.format(drop))
-            drop_buffs.drops.remove(drop)
-            return True
-    return False
-
 def remove_command_surrounding_special_characters(text):
     if (text.startswith('<') and text.endswith('>')) or (text.startswith('[') and text.endswith(']')):
         return text[1:-1]
@@ -1394,7 +1373,8 @@ async def debug_print_drop_buffs(buff):
 
 # class for rend/ony/nef buff times and droppers
 class DropBuffs:
-    def __init__(self, t=TIME_UNKNOWN, d=[], o=None):
+    def __init__(self, n='', t=TIME_UNKNOWN, d=[], o=None):
+        self.name = n
         self.time = t
         self.drops = d
         self.output_function = o
@@ -1420,7 +1400,7 @@ class DropBuffs:
         self.drops = []
         
     def __repr__(self):
-        return "Time:{0}---Drops:{1}".format(self.time, self.drops)
+        return "Buff:{0}---Time:{1}---Drops:{2}".format(self.name, self.time, self.drops)
 
 # class for dropper info
 class Dropper:
@@ -1492,9 +1472,9 @@ class SummonerBuffer:
 data_loaded = False
 playback_updates = True
 server_maintenance = ''
-rend = DropBuffs(d=[], o=calc_rend_msg)
-ony = DropBuffs(d=[], o=calc_ony_msg)
-nef = DropBuffs(d=[], o=calc_nef_msg)
+rend = DropBuffs(n='Rend', d=[], o=calc_rend_msg)
+ony = DropBuffs(n='Ony', d=[], o=calc_ony_msg)
+nef = DropBuffs(n='Nef', d=[], o=calc_nef_msg)
 hakkar_drops = []
 sellers = Sellers()
 bvsf_time = TIME_UNKNOWN
