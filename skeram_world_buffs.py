@@ -152,6 +152,54 @@ async def update_buff_time(ctx, buff, time):
         # debug ouput for testing/verification
         await debug_print_drop_buffs(buff)
 
+
+# functions to add or update a droppers drop info
+async def add_update_drop_dropper(ctx, buff, name, time):
+    try:
+        # 1. Clean and format input
+        clean_title_name = remove_command_surrounding_special_characters(name).title()
+        clean_time = await format_time(remove_command_surrounding_special_characters(time))
+        # 2. Check if dropper already posted
+        dropper = buff.find_dropper(clean_name_or_time)
+        if dropper == None:
+            # 2a. If not posted (find_dropper == None) -> add flow
+            await add_drop_dropper(ctx, buff, clean_title_name, clean_time)
+        else:
+            # 2b. If posted (find_dropper != None) -> update flow
+            await update_drop_dropper(ctx, buff, dropper, clean_title_name, clean_time)
+    finally:
+        # debug ouput for testing/verification
+        await debug_print_drop_buffs(buff)
+
+async def add_drop_dropper(ctx, buff, name, time):
+    # 3. Add drop for dropper (add_drop)
+    buff.add_drop(time, name, ctx.message.author.id)
+    # 4. Sort droppers
+    buff.sort_drops()
+    # 5. Post update to world-buff-chat channel
+    await post_in_world_buffs_chat_channel()
+    # 6. Playback that update was done
+    await playback_message(ctx, '{0} buff timer updated to:\n{1}'.format(buff.name, await buff.output_function()))
+    # 7. If update done via DM, post log record in wbc-commands channel
+    ## FUTURE - TODO
+
+async def update_drop_dropper(ctx, buff, dropper, name, time):
+    # 3. Update name or time
+    if dropper.name == name:
+        # name matches, update time
+        dropper.time = time
+    else:
+        # time matches, update name
+        dropper.name = name
+    # 4. Sort droppers
+    buff.sort_drops()
+    # 5. Post update to world-buff-chat channels
+    await post_in_world_buffs_chat_channel()
+    # 6. Playback that update was done
+    await playback_message(ctx, '{0} buff timer updated to:\n{1}'.format(buff.name, await buff.output_function()))
+    # 7. If update done via DM, post log record in wbc-commands channel
+    ## FUTURE - TODO
+
 # function to remove a buff dropper
 async def remove_buff_dropper(ctx, buff, name_or_time):
     try:
@@ -574,23 +622,17 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
     @commands.command(name='rend-drop', aliases=generate_dropper_aliases("rend"), help='Sets a rend confirmed dropper with time - example: --rend-drop Thatguy 2:54pm')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_rend_dropper(self, ctx, name, time):
-        global rend
-        await add_dropper(rend.drops, name, time)
-        await playback_message(ctx, 'Rend buff timer updated to:\n' + await calc_rend_msg())
+        await add_update_drop_dropper(rend, name, time)
 
     @commands.command(name='ony-drop', aliases=generate_dropper_aliases("ony"), help='Sets a ony confirmed dropper with time - example: --ony-drop Thatguy 2:54pm')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_ony_dropper(self, ctx, name, time):
-        global ony
-        await add_dropper(ony.drops, name, time)
-        await playback_message(ctx, 'Ony buff timer updated to:\n' + await calc_ony_msg())
+        await add_update_drop_dropper(ony, name, time)
 
     @commands.command(name='nef-drop', aliases=generate_dropper_aliases("nef"), help='Sets a nef confirmed dropper with time - example: --nef-drop Thatguy 2:54pm')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_nef_dropper(self, ctx, name, time):
-        global nef
-        await add_dropper(nef.drops, name, time)
-        await playback_message(ctx, 'Nef buff timer updated to:\n' + await calc_nef_msg())
+        await add_update_drop_dropper(nef, name, time)
 
     @commands.command(name='hakkar-drop', aliases=generate_dropper_aliases("hakkar")+["yi-drop"]+generate_dropper_aliases("yi"), help='Sets a hakkar confirmed dropper with time - example: --hakkar-drop Thatguy 2:54pm')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
@@ -1018,11 +1060,6 @@ async def summoners_buffers_msg(summoners, message_ending = 'summons'):
         message += ' \'inv\' for {0}'.format(message_ending)
     return message
 
-async def add_dropper(droppers, name, time):
-    await add_dropper_no_post(droppers, name, time)
-    droppers.sort(key=sort_by_time)
-    await post_in_world_buffs_chat_channel()
-
 async def add_dropper_no_post(droppers, name, time):
     clean_name = remove_command_surrounding_special_characters(name)
     clean_time = remove_command_surrounding_special_characters(time)
@@ -1406,8 +1443,11 @@ class DropBuffs:
         # if no match found, just return None
         return None
 
-    def add_drop(self, time, name):
-        self.drops.append(Dropper(time, name))
+    def add_drop(self, time, name, author_id=''):
+        self.drops.append(Dropper(time, name, author_id))
+
+    def sort_drops(self):
+        self.drops.sort(key=sort_by_time)
 
     def remove_drop(self, dropper):
         self.drops.remove(dropper)

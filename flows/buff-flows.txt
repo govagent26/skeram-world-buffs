@@ -10,6 +10,28 @@
 ##  6. If update done via DM, post log record in wbc-commands channel
 ##
 ##
+## Buffs Flow (add dropper)
+##  1. Clean and format input
+##  2. Check if dropper already posted
+##  2a. If not posted (find_dropper == None) -> add flow
+##  3. Add drop for dropper (add_drop)
+##  4. Sort droppers
+##  5. Post update to world-buff-chat channel
+##  6. Playback that update was done
+##  7. If update done via DM, post log record in wbc-commands channel
+##
+##
+## Buffs Flow (update dropper)
+##  1. Clean and format input
+##  2. Check if dropper already posted
+##  2b. If posted (find_dropper != None) -> update flow
+##  3. Update name or time
+##  4. Sort droppers
+##  5. Post update to world-buff-chat channels
+##  6. Playback that update was done
+##  7. If update done via DM, post log record in wbc-commands channel
+##
+##
 ## Buffs Flow (remove dropper)
 ##  1. Clean and format input
 ##  2. Check if any drops posted match via name or time
