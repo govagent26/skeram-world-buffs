@@ -157,8 +157,14 @@ async def update_buff_time(ctx, buff, time):
 async def add_update_drop_dropper(ctx, buff, name, time):
     try:
         # 1. Clean and format input
-        clean_title_name = remove_command_surrounding_special_characters(name).title()
-        clean_time = await format_time(remove_command_surrounding_special_characters(time))
+        clean_name_input = await format_time(remove_command_surrounding_special_characters(name))
+        clean_time_input = await format_time(remove_command_surrounding_special_characters(time))
+        actual_name = clean_name_input.title()
+        actual_time = clean_time_input
+        # support for reverse order params (when provided time is valid)
+        if await validate_time_format(clean_name_input):
+            actual_name = clean_time_input.title()
+            actual_time = clean_name_input
         # 2. Check if dropper already posted
         dropper = buff.find_dropper(clean_name_or_time)
         if dropper == None:
