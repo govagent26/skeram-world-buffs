@@ -166,13 +166,16 @@ async def add_update_drop_dropper(ctx, buff, name, time):
             actual_name = clean_time_input.title()
             actual_time = clean_name_input
         # 2. Check if dropper already posted
-        dropper = buff.find_dropper(clean_name_or_time)
+        dropper = buff.find_dropper(actual_name)
+        if dropper == None:
+            # try to find via time if no name matched
+            dropper = buff.find_dropper(actual_time)
         if dropper == None:
             # 2a. If not posted (find_dropper == None) -> add flow
-            await add_drop_dropper(ctx, buff, clean_title_name, clean_time)
+            await add_drop_dropper(ctx, buff, actual_name, actual_time)
         else:
             # 2b. If posted (find_dropper != None) -> update flow
-            await update_drop_dropper(ctx, buff, dropper, clean_title_name, clean_time)
+            await update_drop_dropper(ctx, buff, dropper, actual_name, actual_time)
     finally:
         # debug ouput for testing/verification
         await debug_print_drop_buffs(buff)
@@ -628,17 +631,17 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
     @commands.command(name='rend-drop', aliases=generate_dropper_aliases("rend"), help='Sets a rend confirmed dropper with time - example: --rend-drop Thatguy 2:54pm')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_rend_dropper(self, ctx, name, time):
-        await add_update_drop_dropper(rend, name, time)
+        await add_update_drop_dropper(ctx, rend, name, time)
 
     @commands.command(name='ony-drop', aliases=generate_dropper_aliases("ony"), help='Sets a ony confirmed dropper with time - example: --ony-drop Thatguy 2:54pm')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_ony_dropper(self, ctx, name, time):
-        await add_update_drop_dropper(ony, name, time)
+        await add_update_drop_dropper(ctx, ony, name, time)
 
     @commands.command(name='nef-drop', aliases=generate_dropper_aliases("nef"), help='Sets a nef confirmed dropper with time - example: --nef-drop Thatguy 2:54pm')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_nef_dropper(self, ctx, name, time):
-        await add_update_drop_dropper(nef, name, time)
+        await add_update_drop_dropper(ctx, nef, name, time)
 
     @commands.command(name='hakkar-drop', aliases=generate_dropper_aliases("hakkar")+["yi-drop"]+generate_dropper_aliases("yi"), help='Sets a hakkar confirmed dropper with time - example: --hakkar-drop Thatguy 2:54pm')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
