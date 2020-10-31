@@ -339,18 +339,14 @@ async def mockup_data(ctx):
     # populate with dummy data
     global server_maintenance
     server_maintenance = 'SERVER IS UP'
-    global rend
     rend.time = '3:00pm'
-    await add_dropper_no_post(rend.drops, 'Renddropper', '3:00pm')
-    await add_dropper_no_post(rend.drops, 'Nextdropper', '6:00pm')
-    global ony
+    rend.add_drop('3:00pm', 'Renddropper')
+    rend.add_drop('6:30pm', 'Nextdropper')
     ony.time = 'OPEN'
-    await add_dropper_no_post(ony.drops, 'Onydropper', '8:00pm')
-    global nef
+    ony.add_drop('8:45pm', 'Onydropper')
     nef.time = '7:45pm'
-    global hakkar_drops
-    await add_dropper_no_post(hakkar_drops, 'Hakkardrop', '7:00pm')
-    await add_dropper_no_post(hakkar_drops, 'Hakkarnotdrop', '9:15pm')
+    hakkar.add_drop('7:00pm', 'Hakkardrop')
+    hakkar.add_drop('9:15pm', 'Hakkarnotdrop')
     sellers.add_seller(Services.YI, 'YIsums', '5g', 1234567890)
     sellers.add_seller(Services.YI, 'YIsummer', '4g w/port')
     sellers.add_seller(Services.BB, 'BBsums', '', 1234567890)
@@ -431,7 +427,6 @@ async def check_for_message_updates():
     global nef
     global bvsf_time
     global bvsf_update_count
-    global hakkar_drops
     post_updates = False
     wbc_channel = bot.get_channel(WBC_CHANNEL_ID)
     old_bvsf_time = bvsf_time
@@ -554,12 +549,12 @@ async def check_for_message_updates():
                 nef.time = next_nef_time
                 nef.drops.remove(drop)
                 post_updates = True
-    for drop in hakkar_drops:
+    for drop in hakkar.drops:
         if await calc_minutes_since_time(drop.time) > TIME_AFTER_DROP_TO_AUTO_REMOVE:
             embed = discord.Embed(title="**:heartpulse: Hakkar Buff Auto-Update**", description="Hakkar dropper time is in the past, assuming a drop was done and removing dropper...", color=0xe86969)
             embed.add_field(name="Dropper removed", value="{0.time} - (**{0.name}**)".format(drop), inline=False)
             await wbc_channel.send(embed=embed)
-            hakkar_drops.remove(drop)
+            hakkar.remove_drop(drop)
             post_updates = True
     if post_updates:
         await post_in_world_buffs_chat_channel()
@@ -646,12 +641,8 @@ class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper 
     @commands.command(name='hakkar-drop', aliases=generate_dropper_aliases("hakkar")+["yi-drop"]+generate_dropper_aliases("yi"), help='Sets a hakkar confirmed dropper with time - example: --hakkar-drop Thatguy 2:54pm')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def set_hakkar_dropper(self, ctx, name, time):
-        global hakkar_drops
         if await validate_time_format(time) or await validate_time_format(name):
-            await add_dropper_no_post(hakkar_drops, name.lower(), time.lower())
-            hakkar_drops.sort(key=sort_by_time)
-            await post_in_world_buffs_chat_channel()
-            await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
+            await add_update_drop_dropper(ctx, hakkar, name, time)
         else:
             await ctx.send('Invalid time provided, format must be HH:MM[am|pm] - example: {0.prefix}{0.command.name} Thatguy 2:54pm'.format(ctx))
 
@@ -675,9 +666,7 @@ class BuffDropRemoveCommands(commands.Cog, name='Removes a buff dropper with mat
     @commands.command(name='hakkar-drop-remove', aliases=['hakkar-drops-remove', 'yi-drop-remove', 'yi-drops-remove'], brief='Remove user dropping hakkar', help='Removes a hakkar confirmed dropper - example: --hakkar-drop-remove Thatguy')
     @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
     async def remove_hakkar_dropper(self, ctx, name_or_time):
-        global hakkar_drops
-        if await remove_dropper(ctx, hakkar_drops, name_or_time):
-            await playback_message(ctx, 'Hakkar buff timer updated to:\n' + await calc_hakkar_msg())
+        await remove_buff_dropper(ctx, hakkar, name_or_time)
 
 class SummonerAddCommands(commands.Cog, name='Adds the <name> of a summoner and the [note] which may contain cost or other info'):
     def generate_summoner_aliases(location):
@@ -927,9 +916,9 @@ async def calc_nef_msg():
 
 async def calc_hakkar_msg():
     message = ':heartpulse:  Hakkar --- '
-    if len(hakkar_drops) > 0:
+    if len(hakkar.drops) > 0:
         droppers = ''
-        for drop in hakkar_drops:
+        for drop in hakkar.drops:
             if len(droppers) > 0:
                 droppers += ',  '
             droppers += drop.time + ' (**' + drop.name + '**)'
@@ -1276,7 +1265,6 @@ async def populate_data_from_message(message):
                 print('nef')
         elif line.startswith(':heartpulse:  Hakkar --- '):
             #:heartpulse:  Hakkar --- 4:45pm (**Test**),  5:45pm (**Tester**)  --  Whisper  **Yisums** (1g)  'inv' for YI summons  --  Whisper  **Bbsums** (2g)  'inv' for BB summons
-            global hakkar_drops
             strings = line.split(':heartpulse:  Hakkar --- ')
             parts = strings[1].split('  --  ')
             if parts[0] != TIME_UNKNOWN:
@@ -1284,8 +1272,7 @@ async def populate_data_from_message(message):
                 for drop in drops:
                     drop_parts = drop.split(' (')
                     drop_name = drop_parts[1].split('**')
-                    await add_dropper_no_post(hakkar_drops, drop_name[1], drop_parts[0].strip())
-                hakkar_drops.sort(key=sort_by_time)
+                    hakkar.add_drop(drop_parts[0].strip(), drop_name[1])
             for summon_zone in parts[1:]:
                 if 'YI summons' in summon_zone:
                     await process_summoners_buffers(Services.YI, summon_zone)
@@ -1405,8 +1392,7 @@ async def clear_all_data():
     rend.clear()
     ony.clear()
     nef.clear()
-    global hakkar_drops
-    hakkar_drops = []
+    hakkar.clear()
     global sellers
     sellers = Sellers()
     global bvsf_time
@@ -1436,10 +1422,10 @@ async def debug_print_drop_buffs(buff):
 
 # class for rend/ony/nef buff times and droppers
 class DropBuffs:
-    def __init__(self, n='', t=TIME_UNKNOWN, d=[], o=None):
+    def __init__(self, n='', o=None):
         self.name = n
-        self.time = t
-        self.drops = d
+        self.time = TIME_UNKNOWN
+        self.drops = []
         self.output_function = o
     
     def find_dropper(self, name_or_time):
@@ -1538,10 +1524,10 @@ class SummonerBuffer:
 data_loaded = False
 playback_updates = True
 server_maintenance = ''
-rend = DropBuffs(n='Rend', d=[], o=calc_rend_msg)
-ony = DropBuffs(n='Ony', d=[], o=calc_ony_msg)
-nef = DropBuffs(n='Nef', d=[], o=calc_nef_msg)
-hakkar_drops = []
+rend = DropBuffs(n='Rend', o=calc_rend_msg)
+ony = DropBuffs(n='Ony', o=calc_ony_msg)
+nef = DropBuffs(n='Nef', o=calc_nef_msg)
+hakkar = DropBuffs(n='Hakkar', o=calc_hakkar_msg)
 sellers = Sellers()
 bvsf_time = TIME_UNKNOWN
 bvsf_update_count = 0
