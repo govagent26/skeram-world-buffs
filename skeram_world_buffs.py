@@ -414,6 +414,10 @@ async def on_ready():
         data_loaded = True
         # debug ouput for testing/verification
         await debug_print_services()
+        await debug_print_drop_buffs(rend)
+        await debug_print_drop_buffs(ony)
+        await debug_print_drop_buffs(nef)
+        await debug_print_drop_buffs(hakkar)
         # always print when up and running, debug or not
         print("BOT STARTED UP AND READY")
         sys.stdout.flush()
