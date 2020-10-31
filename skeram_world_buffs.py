@@ -1058,42 +1058,12 @@ async def summoners_buffers_msg(summoners, message_ending = 'summons'):
         message += ' \'inv\' for {0}'.format(message_ending)
     return message
 
-async def add_dropper_no_post(droppers, name, time):
-    clean_name = remove_command_surrounding_special_characters(name)
-    clean_time = remove_command_surrounding_special_characters(time)
-    actual_name = clean_name
-    actual_time = clean_time
-    # support for reverse order params (when provided time is valid)
-    if await validate_time_format(await correct_time_format(clean_name)):
-        actual_name = clean_time
-        actual_time = clean_name
-    actual_title_name = actual_name.title()
-    actual_format_time = await format_time(actual_time)
-    for drop in droppers:
-        if drop.name == actual_title_name:
-            drop.time = actual_format_time
-            return
-
-    dropper = Dropper(actual_format_time, actual_title_name)
-    droppers.append(dropper)
-
 async def format_time(time):
     time = await correct_time_format(time)
     if not await validate_time_format(time):
         return time;
     date_time = datetime.strptime(time, '%I:%M%p')
     return datetime.strftime(date_time, PRINT_TIME_FORMAT).lower()
-
-async def remove_dropper(ctx, droppers, name_or_time):
-    clean_name_or_time = (remove_command_surrounding_special_characters(name_or_time)).lower()
-    for dropper in droppers:
-        if dropper.name.lower() == clean_name_or_time or dropper.time.lower() == clean_name_or_time:
-            droppers.remove(dropper)
-            await post_in_world_buffs_chat_channel()
-            return True
-
-    await ctx.send('Name **{0}** not found - nothing to remove'.format(name_or_time))
-    return False
 
 async def post_update_in_wbc_channel(ctx, embed_desc, name=None, note=None, header="**DM Update**"):
     if (ctx.message.guild == None):
@@ -1239,7 +1209,7 @@ async def populate_data_from_message(message):
             strings = line.split(':japanese_ogre:  Rend --- ')
             parts = strings[1].split('(')
             rend.time = remove_command_surrounding_special_characters(parts[0].strip())
-            await process_droppers(rend.drops, parts[1:], rend.time)
+            await process_droppers(rend, parts[1:], rend.time)
             if await calc_rend_msg() != line:
                 populate_success = False
                 print('rend')
@@ -1249,7 +1219,7 @@ async def populate_data_from_message(message):
             strings = line.split(':dragon:  Ony --- ')
             parts = strings[1].split('(')
             ony.time = remove_command_surrounding_special_characters(parts[0].strip())
-            await process_droppers(ony.drops, parts[1:], ony.time)
+            await process_droppers(ony, parts[1:], ony.time)
             if await calc_ony_msg() != line:
                 populate_success = False
                 print('ony')
@@ -1259,7 +1229,7 @@ async def populate_data_from_message(message):
             strings = line.split(':dragon_face:  Nef --- ')
             parts = strings[1].split('(')
             nef.time = remove_command_surrounding_special_characters(parts[0].strip())
-            await process_droppers(nef.drops, parts[1:], nef.time)
+            await process_droppers(nef, parts[1:], nef.time)
             if await calc_nef_msg() != line:
                 populate_success = False
                 print('nef')
@@ -1366,13 +1336,13 @@ async def populate_data_from_message(message):
                     print('extra_message')
     return populate_success
 
-async def process_droppers(droppers, droppers_raw, drop_time):
+async def process_droppers(buff, droppers_raw, drop_time):
     for drop in droppers_raw:
         if ' - ' in drop:
             drop_split = drop.split(' - ')
-            await add_dropper_no_post(droppers, drop_split[1].split('**')[1], drop_split[0])
+            buff.add_drop(drop_split[0], drop_split[1].split('**')[1])
         else:
-            await add_dropper_no_post(droppers, drop.split('**')[1], drop_time)
+            buff.add_drop(drop_time, drop.split('**')[1])
 
 async def process_summoners_buffers(service, message):
     summoners_buffers_raw = message.split(' | ')
