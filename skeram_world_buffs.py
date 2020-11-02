@@ -49,19 +49,24 @@ bot.remove_command('help')
 # functions to add or update a service sellers info
 async def add_update_service_seller(ctx, service, name, note_array):
     try:
-        # 1. Clean and format input
+        # 1. Check if service is active for display or not
+        if not service.value.active:
+            # 1b. not active -> playback message that not active, return
+            await playback_message(ctx, ':no_entry_sign: Inactive Service - service hidden and not currently available for listings')
+            return
+        # 2. Clean and format input
         clean_title_name = remove_command_surrounding_special_characters(name).title()
         message = await construct_args_message(note_array)
         if len(message) > 30:
             # cap message length to 30 characters to avoid too much spamming
             message = message[:30]
-        # 2. Check if service already posted
+        # 3. Check if service already posted
         seller = sellers.find_seller(service, name)
         if seller == None:
-            # 2a. If not posted (find_seller == None) -> add flow
+            # 3a. If not posted (find_seller == None) -> add flow
             await add_service_seller(ctx, service, clean_title_name, message)
         else:
-            # 2b. If posted (find_seller != None) -> update flow
+            # 3b. If posted (find_seller != None) -> update flow
             await update_service_seller(ctx, service, seller, clean_title_name, message)
     finally:
         # debug ouput for testing/verification
@@ -69,60 +74,65 @@ async def add_update_service_seller(ctx, service, name, note_array):
 
 async def add_service_seller(ctx, service, name, message):
     service_info = service.value
-    # 3. No rights check needed
-    # 4. Add seller for service (add_seller)
+    # 4. No rights check needed
+    # 5. Add seller for service (add_seller)
     sellers.add_seller(service, name, message, ctx.message.author.id)
-    # 5. Post update to world-buff-chat channel
+    # 6. Post update to world-buff-chat channel
     await post_in_world_buffs_chat_channel()
-    # 6. Playback that update was done
+    # 7. Playback that update was done
     await playback_message(ctx, '{0} buff timer updated to:\n{1}'.format(service_info.output_line_name, await service_info.output_function()))
-    # 7. If update done via DM, post log record in wbc-commands channel
+    # 8. If update done via DM, post log record in wbc-commands channel
     await post_update_in_wbc_channel(ctx, 'Added a {0} {1} {2}'.format(service_info.icon, service_info.name, 'summoner' if service_info.summoner else 'buffer'), name, [message], '**{0} {1} - DM Update**'.format(service_info.icon, service_info.name))
 
 async def update_service_seller(ctx, service, seller, name, message):
     service_info = service.value
-    # 3. Check for rights, if a seller then author ID must match
+    # 4. Check for rights, if a seller then author ID must match
     if not is_coordinator(ctx) and seller.author != '' and seller.author != ctx.message.author.id:
-        # 3b. no rights -> playback message that no rights to update, return
+        # 4b. no rights -> playback message that no rights to update, return
         await playback_message(ctx, ':no_entry_sign: Missing Rights - only the user who added this service can update it')
         return
-    # 4. Update message
+    # 5. Update message
     seller.msg = message
-    # 5. Post update to world-buff-chat channels
+    # 6. Post update to world-buff-chat channels
     await post_in_world_buffs_chat_channel()
-    # 6. Playback that update was done
+    # 7. Playback that update was done
     await playback_message(ctx, '{0} buff timer updated to:\n{1}'.format(service_info.output_line_name, await service_info.output_function()))
-    # 7. If update done via DM, post log record in wbc-commands channel
+    # 8. If update done via DM, post log record in wbc-commands channel
     await post_update_in_wbc_channel(ctx, 'Updated message for a {0} {1} {2}'.format(service_info.icon, service_info.name, 'summoner' if service_info.summoner else 'buffer'), name, [message], '**{0} {1} - DM Update**'.format(service_info.icon, service_info.name))
 
 # function to remove a service sellers info
 async def remove_service_seller(ctx, service, name):
     try:
         service_info = service.value
-        # 1. Clean and format input
+        # 1. Check if service is active for display or not
+        if not service_info.active:
+            # 1b. not active -> playback message that not active, return
+            await playback_message(ctx, ':no_entry_sign: Inactive Service - service hidden and not currently available for listings')
+            return
+        # 2. Clean and format input
         clean_title_name = remove_command_surrounding_special_characters(name).title()
-        # 2. Check if service already posted
+        # 3. Check if service already posted
         seller = sellers.find_seller(service, name)
         if seller == None:
-            # 2b. If not posted -> playback message that does not exist
+            # 3b. If not posted -> playback message that does not exist
             await playback_message(ctx, ':warning: User not currently posted - nothing to remove')
             return
-        # 3. Check for rights, if a seller then author ID must match
+        # 4. Check for rights, if a seller then author ID must match
         if not is_coordinator(ctx) and seller.author != '' and seller.author != ctx.message.author.id:
-            # 3b. no rights -> playback message that no rights to remove, return
+            # 4b. no rights -> playback message that no rights to remove, return
             await playback_message(ctx, ':no_entry_sign: Missing Rights - only the user who added this service can remove it')
             return
-        # 4. Remove service listing
+        # 5. Remove service listing
         sellers.remove_seller(service, seller)
-        # 5. Post update to world-buff-chat channels
+        # 6. Post update to world-buff-chat channels
         await post_in_world_buffs_chat_channel()
-        # 6. Playback that update was done
+        # 7. Playback that update was done
         output = await service_info.output_function()
         if (output != ''):
             await playback_message(ctx, '{0} buff timer updated to:\n{1}'.format(service_info.output_line_name, output))
         else:
             await playback_message(ctx, '{0} buff timer removed'.format(service_info.output_line_name))
-        # 7. If update done via DM, post log record in wbc-commands channel
+        # 8. If update done via DM, post log record in wbc-commands channel
         await post_update_in_wbc_channel(ctx, 'Removed a {0} {1} {2}'.format(service_info.icon, service_info.name, 'summoner' if service_info.summoner else 'buffer'), name, header='**{0} {1} - DM Update**'.format(service_info.icon, service_info.name))
     finally:
         # debug ouput for testing/verification
@@ -992,6 +1002,8 @@ async def calc_dmf_msg():
     return message
 
 async def calc_wicker_msg():
+    if not Services.WICKERMAN.value.active:
+        return ''
     message = ':jack_o_lantern:  Wickerman (Tirisfal Glades) --- '
     if len(sellers.sellers[Services.WICKERMAN]) > 0:
         message += await summoners_buffers_msg(sellers.sellers[Services.WICKERMAN])
@@ -1439,12 +1451,13 @@ class Dropper:
         return "Time:{0}---Name:{1}---AuthorID:{2}".format(self.time, self.name, self.author)
 
 class ServiceInfo:
-    def __init__(self, n, i, s, o, f):
+    def __init__(self, n, i, s, o, f, a=True):
         self.name = n
         self.icon = i
         self.summoner = s
         self.output_line_name = o
         self.output_function = f
+        self.active = a
 
 # enum class for all possible summon/buff services sold
 class Services(enum.Enum):
@@ -1457,7 +1470,7 @@ class Services(enum.Enum):
     BRM = ServiceInfo("BRM", ":mountain:", True, "BRM", calc_brm_msg)
     AQ = ServiceInfo("AQ", ":bug:", True, "AQ", calc_aq_msg)
     NAXX = ServiceInfo("NAXX", ":skull:", True, "Naxx", calc_naxx_msg)
-    WICKERMAN = ServiceInfo("WICKERMAN", ":jack_o_lantern:", True, "Wickerman", calc_wicker_msg)
+    WICKERMAN = ServiceInfo("WICKERMAN", ":jack_o_lantern:", True, "Wickerman", calc_wicker_msg, False)
 
 # class for summons and (DMT) buff sellers
 class Sellers:

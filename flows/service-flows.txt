@@ -1,37 +1,43 @@
 ##
 ##
 ## Services Flow (add)
-##  1. Clean and format input
-##  2. Check if service already posted
-##  2a. If not posted (find_seller == None) -> add flow
-##  3. No rights check needed
-##  4. Add seller for service (add_seller)
-##  5. Post update to world-buff-chat channel
-##  6. Playback that update was done
-##  7. If update done via DM, post log record in wbc-commands channel
+##  1. Check if service is active for display or not
+##    1b. not active -> playback message that not active, return
+##  2. Clean and format input
+##  3. Check if service already posted
+##    3a. If not posted (find_seller == None) -> add flow
+##  4. No rights check needed
+##  5. Add seller for service (add_seller)
+##  6. Post update to world-buff-chat channel
+##  7. Playback that update was done
+##  8. If update done via DM, post log record in wbc-commands channel
 ##
 ##
 ## Services Flow (update)
-##  1. Clean and format input
-##  2. Check if service already posted
-##  2b. If posted (find_seller != None) -> update flow
-##  3. Check for rights, if a seller then author ID must match
-##    3b. no rights -> playback message that no rights to update, return
-##  4. Update message
-##  5. Post update to world-buff-chat channels
-##  6. Playback that update was done
-##  7. If update done via DM, post log record in wbc-commands channel
+##  1. Check if service is active for display or not
+##    1b. not active -> playback message that not active, return
+##  2. Clean and format input
+##  3. Check if service already posted
+##  3b. If posted (find_seller != None) -> update flow
+##  4. Check for rights, if a seller then author ID must match
+##    4b. no rights -> playback message that no rights to update, return
+##  5. Update message
+##  6. Post update to world-buff-chat channels
+##  7. Playback that update was done
+##  8. If update done via DM, post log record in wbc-commands channel
 ##
 ##
 ## Services Flow (remove)
-##  1. Clean and format input
-##  2. Check if service already posted
-##    2b. If not posted -> playback message that does not exist
-##  3. Check for rights, if a seller then author ID must match
-##    3b. no rights -> playback message that no rights to remove, return
-##  4. Remove service listing
-##  5. Post update to world-buff-chat channels
-##  6. Playback that update was done
-##  7. If update done via DM, post log record in wbc-commands channel
+##  1. Check if service is active for display or not
+##    1b. not active -> playback message that not active, return
+##  2. Clean and format input
+##  3. Check if service already posted
+##    3b. If not posted -> playback message that does not exist
+##  4. Check for rights, if a seller then author ID must match
+##    4b. no rights -> playback message that no rights to remove, return
+##  5. Remove service listing
+##  6. Post update to world-buff-chat channels
+##  7. Playback that update was done
+##  8. If update done via DM, post log record in wbc-commands channel
 ##
 ##
