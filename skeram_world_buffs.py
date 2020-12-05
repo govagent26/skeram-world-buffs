@@ -862,7 +862,7 @@ class ExtraMessageCommands(commands.Cog, name = 'Specifies an additional footer 
 @coordinator_or_seller(seller=True)
 async def set_dendave_extra_footer_message(ctx):
     global extra_message
-    extra_message = ":airplane::heartpulse::wilted_rose::crown::bug::mountain: **Denmule** selling 8g summons to all raid & buff locations. Whisper 'inv __' with destination (i.e. Blasted Lands, DMT, BVSF, YI, AQ, BWL, MC, Org)"
+    extra_message = ":airplane::heartpulse::wilted_rose::crown::bug::mountain: **Denmule** selling 8g summons to all raid & buff locations. Whisper 'inv __' with destination (i.e. Naxx, DMT, BVSF, YI, AQ, BWL, MC, Org)"
     await post_in_world_buffs_chat_channel()
     await playback_message(ctx, 'Extra footer message updated to:\n' + await get_extra_message())
     await post_update_in_wbc_channel(ctx, 'Added Dendave extra footer message')
