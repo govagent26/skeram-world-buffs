@@ -297,7 +297,7 @@ async def help(ctx):
         commands = ''
         cog_obj = bot.get_cog(cog)
         cog_obj_name = str(cog_obj)
-        if not coordinator and not ('Summoner' in cog_obj_name or 'DMTBuff' in cog_obj_name):
+        if not coordinator and not ('Summoner' in cog_obj_name or 'DMTBuff' in cog_obj_name or 'BVSF' in cog_obj_name):
             continue
         for command in cog_obj.get_commands():
             commands += '\n{0.command_prefix[0]}{1.qualified_name} {1.signature}'.format(bot, command)
@@ -608,7 +608,7 @@ class BuffAvailTimeCommands(commands.Cog, name='Specifies the <time> when the bu
 
 class BVSFBuffCommands(commands.Cog, name = 'Sets the next <time> the BVSF flower should be up or clears it'):
     @commands.command(name='bvsf', aliases=['bvsf-time'], brief='Set time when BVSF is up', help='Sets the next time bvsf flower buff is up - example: --bvsf 2:54pm')
-    @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
+    @coordinator_or_seller(seller=True)
     async def set_bvsf_time(self, ctx, time):
         global bvsf_time
         global bvsf_update_count
@@ -618,24 +618,27 @@ class BVSFBuffCommands(commands.Cog, name = 'Sets the next <time> the BVSF flowe
             bvsf_update_count = 0
             await post_in_world_buffs_chat_channel()
             await playback_message(ctx, 'BVSF buff timer updated to:\n' + await calc_bvsf_msg())
+            await post_update_in_wbc_channel(ctx, 'BVSF buff timer updated to {0}'.format(bvsf_time), header='**:wilted_rose: BVSF Time - DM Update**')
         else:
             await ctx.send('Invalid time provided, format must be HH:MM[am|pm] - example: {0.prefix}{0.command.name} 2:54pm'.format(ctx))
 
     @commands.command(name='bvsf-corrupted', aliases=['bvsf-corrupt'], brief='Sets the BVSF as corrupted', help='Sets the flower as corrupted - example: --bvsf-corrupted')
-    @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
+    @coordinator_or_seller(seller=True)
     async def set_bvsf_corrupted(self, ctx):
         global bvsf_time
         bvsf_time = BVSF_CORRUPTED
         await post_in_world_buffs_chat_channel()
         await playback_message(ctx, 'BVSF buff timer updated to:\n' + await calc_bvsf_msg())
+        await post_update_in_wbc_channel(ctx, 'BVSF buff timer marked as corrupted', header='**:wilted_rose: BVSF Time - DM Update**')
 
     @commands.command(name='bvsf-clear', brief='Clears BVSF time, sets to ?:??', help='Sets the BVSF time to ?:?? - example: --bvsf-clear')
-    @commands.has_role(WORLD_BUFF_COORDINATOR_ROLE_ID)
+    @coordinator_or_seller(seller=True)
     async def clear_bvsf_time(self, ctx):
         global bvsf_time
         bvsf_time = TIME_UNKNOWN
         await post_in_world_buffs_chat_channel()
         await playback_message(ctx, 'BVSF buff timer updated to:\n' + await calc_bvsf_msg())
+        await post_update_in_wbc_channel(ctx, 'BVSF buff timer cleared', header='**:wilted_rose: BVSF Time - DM Update**')
 
 
 class BuffDropAddCommands(commands.Cog, name='Adds the <name> of a buff dropper and the planned <time>'):
