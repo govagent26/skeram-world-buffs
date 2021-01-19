@@ -831,10 +831,12 @@ class GriefingCommands(commands.Cog, name = 'Specifies the ally sighting / grief
     async def set_alliance_message(self, ctx, *message):
         global alliance
         alliance = await construct_args_message(message)
-        await post_in_world_buffs_chat_channel()
         if len(alliance) > 0:
+            alliance += ' *(last updated at ' + await get_current_time() + ')*'
+            await post_in_world_buffs_chat_channel()
             await playback_message(ctx, 'Alliance warning message updated to:\n' + await get_alliance())
         else:
+            await post_in_world_buffs_chat_channel()
             await playback_message(ctx, 'Alliance warning message removed')
             
     @commands.command(name='ally-remove', brief='Clears the ally message', help='Clears the ally section and hides it - example: --ally-remove')
@@ -1053,6 +1055,10 @@ async def get_local_time():
     now = utc.localize(datetime.utcnow())
     local_time = now.astimezone(timezone('US/Eastern'))
     return local_time
+
+async def get_current_time():
+    local_time = await get_local_time()
+    return datetime.strftime(local_time, PRINT_TIME_FORMAT).lower()
 
 async def droppers_msg(drop_buffs):
     message = ''
