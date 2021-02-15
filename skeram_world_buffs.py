@@ -373,6 +373,7 @@ async def mockup_data(ctx):
     dmf_location = 'Mulgore'
     sellers.add_seller(Services.DMF, 'dmfsums', '10g', 1234567890)
     sellers.add_seller(Services.WICKERMAN, 'wickersums', '9g')
+    sellers.add_seller(Services.BL, 'BLsums', '', 1234567890)
     global alliance
     alliance = 'ALLY everywhere - dont die'
     global extra_message
@@ -739,6 +740,10 @@ class SummonerAddCommands(commands.Cog, name='Adds the <name> of a summoner and 
     async def add_wickerman_summons(self, ctx, name, *note):
         await add_update_service_seller(ctx, Services.WICKERMAN, name, note)
 
+    @commands.command(name='bl-sums', aliases=generate_summoner_aliases("bl"), help='Adds a Blasted Lands summoner with cost/message - example: --bl-sums Thatguy 5g w/port')
+    @coordinator_or_seller(seller=True)
+    async def add_blasted_lands_summons(self, ctx, name, *note):
+        await add_update_service_seller(ctx, Services.BL, name, note)
 
 class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summoner'):
     def generate_summoner_remove_aliases(location):
@@ -789,6 +794,10 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
     async def remove_wickerman_summons(self, ctx, name):
         await remove_service_seller(ctx, Services.WICKERMAN, name)
 
+    @commands.command(name='bl-sums-remove', aliases=generate_summoner_remove_aliases("bl"), brief='Remove user that was summoning to Blasted Lands', help='Removes a BL summoner - example: --bl-sums-remove Thatguy')
+    @coordinator_or_seller(seller=True)
+    async def remove_blasted_lands_summons(self, ctx, name):
+        await remove_service_seller(ctx, Services.BL, name)
 
 class DMTBuffCommands(commands.Cog, name = 'Adds the <name> of a DMT buff seller and the [note] which may contain cost or other info or Removes the <name> of the DMT buffer'):
     @commands.command(name='dmt-buffs', aliases=['dmt-buffs-add', 'dmt-buff', 'dmt-buff-add', 'dm-buffs', 'dm-buffs-add', 'dm-buff', 'dm-buff-add'], help='Adds a DMT buffer with cost/message - example: --dmt-buffs Thatguy 5g w/port')
@@ -897,6 +906,7 @@ async def get_buff_times():
     message += await calc_brm_msg()
     message += await calc_dmf_msg()
     message += await calc_wicker_msg()
+    message += await calc_bl_msg()
     message += await get_alliance()
     message += await get_extra_message()
     return message
@@ -1020,6 +1030,12 @@ async def calc_wicker_msg():
     else:
         message += ' No summons available at this time'
     message += '\n'
+    return message
+
+async def calc_bl_msg():
+    message = ''
+    if len(sellers.sellers[Services.BL]) > 0:
+        message = ':volcano: Blasted Lands (buffs) --- ' + await summoners_buffers_msg(sellers.sellers[Services.BL]) + '\n'
     return message
 
 async def check_for_bvsf_updates():
