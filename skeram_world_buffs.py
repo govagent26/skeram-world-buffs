@@ -374,6 +374,7 @@ async def mockup_data(ctx):
     sellers.add_seller(Services.DMF, 'dmfsums', '10g', 1234567890)
     sellers.add_seller(Services.WICKERMAN, 'wickersums', '9g')
     sellers.add_seller(Services.BLASTEDLANDS, 'BLsums', '', 1234567890)
+    sellers.add_seller(Services.SAND, 'Sandsums', '7g w/port', 1234567890)
     global alliance
     alliance = 'ALLY everywhere - dont die'
     global extra_message
@@ -745,6 +746,11 @@ class SummonerAddCommands(commands.Cog, name='Adds the <name> of a summoner and 
     async def add_blasted_lands_summons(self, ctx, name, *note):
         await add_update_service_seller(ctx, Services.BLASTEDLANDS, name, note)
 
+    @commands.command(name='sand-sums', aliases=generate_summoner_aliases("sand"), help='Adds a Silithus sand summoner with cost/message - example: --sand-sums Thatguy 5g w/port')
+    @coordinator_or_seller(seller=True)
+    async def add_sand_summons(self, ctx, name, *note):
+        await add_update_service_seller(ctx, Services.SAND, name, note)
+
 class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summoner'):
     def generate_summoner_remove_aliases(location):
         return ["{0}-summ-remove".format(location), "{0}-summs-remove".format(location), "{0}-sum-remove".format(location)]
@@ -798,6 +804,11 @@ class SummonerRemoveCommands(commands.Cog, name='Removes the <name> of a summone
     @coordinator_or_seller(seller=True)
     async def remove_blasted_lands_summons(self, ctx, name):
         await remove_service_seller(ctx, Services.BLASTEDLANDS, name)
+
+    @commands.command(name='sand-sums-remove', aliases=generate_summoner_remove_aliases("sand"), brief='Remove user that was summoning to Silithus sand buff', help='Removes a Silithus sands summoner - example: --sand-sums-remove Thatguy')
+    @coordinator_or_seller(seller=True)
+    async def remove_sand_summons(self, ctx, name):
+        await remove_service_seller(ctx, Services.SAND, name)
 
 class DMTBuffCommands(commands.Cog, name = 'Adds the <name> of a DMT buff seller and the [note] which may contain cost or other info or Removes the <name> of the DMT buffer'):
     @commands.command(name='dmt-buffs', aliases=['dmt-buffs-add', 'dmt-buff', 'dmt-buff-add', 'dm-buffs', 'dm-buffs-add', 'dm-buff', 'dm-buff-add'], help='Adds a DMT buffer with cost/message - example: --dmt-buffs Thatguy 5g w/port')
@@ -907,6 +918,7 @@ async def get_buff_times():
     message += await calc_dmf_msg()
     message += await calc_wicker_msg()
     message += await calc_bl_msg()
+    message += await calc_sand_msg()
     message += await get_alliance()
     message += await get_extra_message()
     return message
@@ -1035,7 +1047,13 @@ async def calc_wicker_msg():
 async def calc_bl_msg():
     message = ''
     if len(sellers.sellers[Services.BLASTEDLANDS]) > 0:
-        message = ':volcano: Blasted Lands --- ' + await summoners_buffers_msg(sellers.sellers[Services.BLASTEDLANDS]) + '\n'
+        message = ':volcano:  Blasted Lands --- ' + await summoners_buffers_msg(sellers.sellers[Services.BLASTEDLANDS]) + '\n'
+    return message
+
+async def calc_sand_msg():
+    message = ''
+    if len(sellers.sellers[Services.SAND]) > 0:
+        message = ':hourglass_flowing_sand:  Silithus Sand Buff --- ' + await summoners_buffers_msg(sellers.sellers[Services.SAND]) + '\n'
     return message
 
 async def check_for_bvsf_updates():
@@ -1232,7 +1250,8 @@ def sort_by_time(dropper):
 #:bug:  AQ Gates --- Whisper  **Aqsum** (7g)  'inv' for summons
 #:mountain:  BRM --- Whisper  **Brmsums** (5g or 10g w/FR :fire_extinguisher:)  'inv' for summons
 #:circus_tent:  DMF (Elwynn Forest) --- Whisper  **Dmfsums** (4g w/port)  'inv' for summons
-#:volcano: Blasted Lands --- Whisper  **BLsums** (10g w/port)  'inv' for summons
+#:volcano:  Blasted Lands --- Whisper  **BLsums** (10g w/port)  'inv' for summons
+#:hourglass_flowing_sand: Silithus Sand Buff --- Whisper  **Sandsums** (10g w/port)  'inv' for summons
 #:warning:  ALLY ALL OVER
 
 #:airplane: :heartpulse::wilted_rose::crown::bug: :mountain: Denmule selling 8g summons to all raid & buff locations. Whisper 'inv __' with destination (i.e. DMT, BVSF, YI, AQ, BWL, MC, Org, ZG)
@@ -1365,14 +1384,22 @@ async def populate_data_from_message(message):
             if await calc_wicker_msg() != line + '\n':
                 populate_success = False
                 print('wickerman')
-        elif line.startswith(':volcano: Blasted Lands --- '):
+        elif line.startswith(':volcano:  Blasted Lands --- '):
             #:volcano: Blasted Lands --- Whisper  **BLsums** (10g w/port)  'inv' for summons
-            strings = line.split(':volcano: Blasted Lands --- ')
+            strings = line.split(':volcano:  Blasted Lands --- ')
             if 'for summons' in strings[1]:
                 await process_summoners_buffers(Services.BLASTEDLANDS, strings[1])
             if await calc_bl_msg() != line + '\n':
                 populate_success = False
                 print('bl')
+        elif line.startswith(':hourglass_flowing_sand:  Silithus Sand Buff --- '):
+            #:hourglass_flowing_sand: Silithus Sand Buff --- Whisper  **Sandsums** (10g w/port)  'inv' for summons
+            strings = line.split(':hourglass_flowing_sand:  Silithus Sand Buff --- ')
+            if 'for summons' in strings[1]:
+                await process_summoners_buffers(Services.SAND, strings[1])
+            if await calc_sand_msg() != line + '\n':
+                populate_success = False
+                print('sand')
         elif line.startswith(':warning:'):
             #:warning:  ALLY ALL OVER
             global alliance
@@ -1511,6 +1538,7 @@ class Services(enum.Enum):
     NAXX = ServiceInfo("NAXX", ":skull:", True, "Naxx", calc_naxx_msg)
     WICKERMAN = ServiceInfo("WICKERMAN", ":jack_o_lantern:", True, "Wickerman", calc_wicker_msg, False)
     BLASTEDLANDS = ServiceInfo("BLASTED_LANDS", ":volcano:", True, "Blasted Lands", calc_bl_msg)
+    SAND = ServiceInfo("SAND", ":hourglass_flowing_sand:", True, "Silithus Sand Buff", calc_sand_msg)
 
 # class for summons and (DMT) buff sellers
 class Sellers:
