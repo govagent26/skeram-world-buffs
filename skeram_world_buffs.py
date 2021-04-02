@@ -305,11 +305,11 @@ async def help(ctx):
         for command in cog_obj.get_commands():
             commands += '\n{0.command_prefix[0]}{1.qualified_name} {1.signature}'.format(bot, command)
         helptext += '{0}\n  {1.qualified_name}\n\n'.format(commands, cog_obj)
-    if (coordinator):
-        # help message too long - need to send commands and then final help text separate
-        helptext += "```"
-        await ctx.send(helptext)
-        helptext = "```"
+        if (coordinator and len(helptext) > 1500):
+            # help message too long - need to seperate text and send seperately
+            helptext += "```"
+            await ctx.send(helptext)
+            helptext = "```"
     helptext += '\n\n{0.command_prefix[0]}{1.qualified_name} {1.signature}\n  {1.description}\n\n'.format(bot, bot.get_command('help'))
     helptext += "```"
     await ctx.send(helptext)
