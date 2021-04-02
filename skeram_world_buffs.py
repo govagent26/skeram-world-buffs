@@ -6,6 +6,7 @@ import re
 import platform
 import discord
 import enum
+import traceback
 
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
@@ -34,6 +35,8 @@ TIME_UNKNOWN = '?:??'
 BVSF_CORRUPTED = '**CORRUPTED**'
 WORLD_BUFF_COORDINATOR = 'WBC'
 WORLD_BUFF_SELLER = 'WBS'
+# buffer/summoner separator
+BUFF_SUMM_SEPERATOR = '  |  '
 # minutes after a drop to be auto-removed
 TIME_AFTER_DROP_TO_AUTO_REMOVE = 1
 
@@ -1115,7 +1118,7 @@ async def summoners_buffers_msg(summoners, message_ending = 'summons'):
         for index in range(len(summoners)):
             summoner = summoners[index]
             if index > 0:
-                message += '  |  '
+                message += BUFF_SUMM_SEPERATOR
             message += ' **' + summoner.name + '** '
             if len(summoner.msg) > 0:
                 message += '(' + summoner.msg + ') '
@@ -1419,23 +1422,33 @@ async def populate_data_from_message(message):
     return populate_success
 
 async def process_droppers(buff, droppers_raw, drop_time):
-    for drop in droppers_raw:
-        if ' - ' in drop:
-            drop_split = drop.split(' - ')
-            buff.add_drop(drop_split[0], drop_split[1].split('**')[1])
-        else:
-            buff.add_drop(drop_time, drop.split('**')[1])
+    try:
+        for drop in droppers_raw:
+            if ' - ' in drop:
+                drop_split = drop.split(' - ')
+                buff.add_drop(drop_split[0], drop_split[1].split('**')[1])
+            else:
+                buff.add_drop(drop_time, drop.split('**')[1])
+    except:
+        # nothing to do but log it...
+        traceback.print_exc()
+        print('error trying to parse {0}'.format(droppers_raw))
 
 async def process_summoners_buffers(service, message):
-    summoners_buffers_raw = message.split(' | ')
-    for summoner_buffer in summoners_buffers_raw:
-        parts = summoner_buffer.split('**')
-        summoner_note = ''
-        if '(' in parts[2] and ')' in parts[2]:
-            index_start = parts[2].index('(') + 1
-            index_end = parts[2].rindex(')')
-            summoner_note = parts[2][index_start:index_end]
-        sellers.add_seller(service, parts[1], summoner_note)
+    try:
+        summoners_buffers_raw = message.split(BUFF_SUMM_SEPERATOR)
+        for summoner_buffer in summoners_buffers_raw:
+            parts = summoner_buffer.split('**')
+            summoner_note = ''
+            if '(' in parts[2] and ')' in parts[2]:
+                index_start = parts[2].index('(') + 1
+                index_end = parts[2].rindex(')')
+                summoner_note = parts[2][index_start:index_end]
+            sellers.add_seller(service, parts[1], summoner_note)
+    except:
+        # nothing to do but log it...
+        traceback.print_exc()
+        print('error trying to parse {0}'.format(message))
 
 # clear all stored data
 async def clear_all_data():
